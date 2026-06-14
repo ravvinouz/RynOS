@@ -1,0 +1,2900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0708">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<title>Ryan OS</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#0a0708;--s1:#150f12;--s2:#1f1518;--bd:#332026;
+--tx:#f1e8ea;--sub:#9c8089;--mu:#5c4750;
+--or:#9b1c2e;--or2:#e63950;--orb:rgba(230,57,80,.1);
+--bl:#5a4a6a;--bl2:#b9a8d4;--blb:rgba(185,168,212,.1);
+--go:#8a6d3b;--go2:#d4af6a;--gob:rgba(212,175,106,.1);
+--gn:#5fa97a;--rd:#e63950;--am:#d4af6a;--pu:#9966cc;
+}
+
+/* SYNC BAR */
+#syncbar{height:26px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;font-weight:600;flex-shrink:0;transition:background .3s,color .3s}
+#syncbar.ok{background:rgba(46,204,113,.1);color:#2ecc71}
+#syncbar.syncing{background:rgba(201,168,76,.1);color:#f0c060}
+#syncbar.err{background:rgba(231,76,60,.1);color:#e74c3c}
+.sdot{width:6px;height:6px;border-radius:50%;background:currentColor}
+#syncbar.syncing .sdot{animation:sdpulse 1s infinite}
+@keyframes sdpulse{0%,100%{opacity:1}50%{opacity:.2}}
+#syncbar.ok .sdot{animation:none}
+
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-family:system-ui,sans-serif;font-size:14px}
+#app{display:flex;flex-direction:column;height:100%}
+.top{height:48px;background:var(--s1);border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 14px;gap:8px;flex-shrink:0}
+.logo{font-size:17px;font-weight:900;letter-spacing:.08em;background:linear-gradient(90deg,var(--or2),var(--go2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.streak{margin-left:auto;background:var(--gob);border:1px solid rgba(201,168,76,.3);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--go2)}
+.topdate{font-size:10px;color:var(--sub)}
+.tabs{display:flex;background:var(--s1);border-bottom:1px solid var(--bd);overflow-x:auto;flex-shrink:0;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:0 14px;height:40px;display:flex;align-items:center;font-size:12px;font-weight:600;color:var(--sub);cursor:pointer;border:none;border-bottom:2px solid transparent;background:none;white-space:nowrap;transition:all .15s}
+.tab.on{color:var(--tx);border-bottom-color:var(--or2)}
+.tab.on.bl{border-bottom-color:var(--bl2)}
+.pages{flex:1;overflow:hidden;position:relative}
+.page{position:absolute;inset:0;overflow-y:auto;padding:14px 13px 65px;display:none;-webkit-overflow-scrolling:touch}
+.page.on{display:block}
+.bnav{height:54px;background:var(--s1);border-top:1px solid var(--bd);display:flex;flex-shrink:0}
+.bn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;background:none;border:none;color:var(--sub);-webkit-tap-highlight-color:transparent}
+.bn.on{color:var(--or2)}
+.bn.on.bl{color:var(--bl2)}
+.bni{font-size:16px;line-height:1}
+.bnl{font-size:9px;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+.stabs{display:flex;gap:5px;margin-bottom:13px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.stabs::-webkit-scrollbar{display:none}
+.stab{flex-shrink:0;padding:5px 11px;border-radius:20px;font-size:11px;font-weight:600;color:var(--sub);cursor:pointer;border:1px solid var(--bd);background:none;white-space:nowrap}
+.stab.on{background:var(--or2);border-color:var(--or2);color:#fff}
+.stab.on.bl{background:var(--bl);border-color:var(--bl);color:#fff}
+.sv{display:none}.sv.on{display:block}
+.ptitle{font-size:22px;font-weight:900;margin-bottom:2px}
+.ptitle.o{color:var(--or2)}.ptitle.b{color:var(--bl2)}.ptitle.g{color:var(--go2)}.ptitle.p{color:var(--pu)}
+.psub{font-size:11px;color:var(--sub);margin-bottom:13px}
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:13px;margin-bottom:9px}
+.ct{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--sub);font-weight:600;margin-bottom:9px}
+.divl{height:1px;background:var(--bd);margin:10px 0}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.bo{background:var(--orb);color:var(--or2)}.bb{background:var(--blb);color:var(--bl2)}.bgold{background:var(--gob);color:var(--go2)}.br{background:rgba(46,204,113,.1);color:var(--gn)}.bx{background:var(--s2);color:var(--sub)}.brd{background:rgba(231,76,60,.1);color:var(--rd)}.bpu{background:rgba(167,139,250,.1);color:var(--pu)}
+.hero{padding:12px 0 10px}
+.hgreet{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--sub);margin-bottom:4px}
+.htitle{font-size:30px;font-weight:900;line-height:1.05;margin-bottom:2px}
+.htitle .o{color:var(--or2)}.htitle .b{color:var(--bl2)}
+.hphase{font-size:11px;color:var(--sub);margin-bottom:14px}
+.progbox{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:13px;margin-bottom:9px}
+.ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}
+.ph-t{font-size:13px;font-weight:700}
+.ph-big{font-size:24px;font-weight:900;color:var(--or2)}
+.pr{margin-bottom:8px}.pr:last-child{margin-bottom:0}
+.prh{display:flex;justify-content:space-between;margin-bottom:3px}
+.prl{font-size:11px;color:var(--sub)}
+.prv{font-size:11px;font-weight:700}
+.prb{height:4px;background:var(--bd);border-radius:2px;overflow:hidden}
+.prf{height:100%;border-radius:2px;transition:width .6s ease;width:0}
+.qg{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px}
+.qc{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:12px;cursor:pointer;border-left:3px solid transparent;-webkit-tap-highlight-color:transparent}
+.qc:active{opacity:.7}
+.qc.o{border-left-color:var(--or2)}.qc.b{border-left-color:var(--bl2)}.qc.g{border-left-color:var(--gn)}.qc.p{border-left-color:var(--pu)}
+.qci{font-size:18px;margin-bottom:3px}.qcn{font-size:12px;font-weight:700;margin-bottom:1px}.qcs{font-size:10px;color:var(--sub)}
+.quotebox{background:linear-gradient(135deg,var(--orb),var(--blb));border:1px solid var(--bd);border-radius:10px;padding:16px;text-align:center;margin-bottom:9px}
+.qt{font-style:italic;font-size:14px;line-height:1.6;margin-bottom:5px}
+.qa{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--sub)}
+.warn{background:rgba(231,76,60,.06);border:1px solid rgba(231,76,60,.2);border-radius:8px;padding:11px;margin-bottom:9px;display:flex;gap:9px;align-items:flex-start;font-size:12px;color:var(--sub);line-height:1.6}
+.warn strong{color:var(--rd)}
+.rbox{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:13px}
+.rbt{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--sub);font-weight:600;margin-bottom:8px}
+.ri{font-size:13px;font-weight:500;padding:6px 0;border-bottom:1px solid var(--bd);display:flex;gap:8px}
+.ri:last-child{border-bottom:none}
+.ri::before{content:'⚡';font-size:11px;flex-shrink:0;margin-top:1px}
+.clsec{margin-bottom:16px}
+.clst{font-size:9px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;margin-bottom:7px}
+.clst.o{color:var(--or2)}.clst.b{color:var(--bl2)}.clst.g{color:var(--go2)}
+.ci{display:flex;align-items:center;gap:11px;background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:12px 13px;margin-bottom:6px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:border-color .15s,background .15s}
+.ci.done{background:rgba(46,204,113,.05);border-color:rgba(46,204,113,.25)}
+.cick{width:20px;height:20px;border-radius:5px;border:2px solid var(--bd);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;transition:all .15s}
+.ci.done .cick{background:var(--gn);border-color:var(--gn);color:#fff}
+.cilb{font-size:13px;font-weight:500;flex:1}
+.ci.done .cilb{color:var(--gn);text-decoration:line-through;text-decoration-color:rgba(46,204,113,.4)}
+.ciem{font-size:16px;flex-shrink:0}
+.rbtn{width:100%;padding:12px;background:rgba(231,76,60,.07);border:1px solid rgba(231,76,60,.2);border-radius:8px;color:var(--rd);font-size:12px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px}
+.sc{background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:10px;position:relative;overflow:hidden}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.sc.g::before{background:var(--gn)}.sc.m::before{background:var(--am)}.sc.l::before{background:var(--rd)}
+.sclb{font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--sub);margin-bottom:2px}
+.scv{font-size:28px;font-weight:900;line-height:1}
+.scbr{height:2px;background:var(--bd);border-radius:1px;overflow:hidden;margin-top:4px}
+.scf{height:100%;border-radius:1px}
+.sc.g .scf{background:var(--gn)}.sc.m .scf{background:var(--am)}.sc.l .scf{background:var(--rd)}
+.scnt{font-size:9px;color:var(--sub);margin-top:3px;line-height:1.4}
+.sw{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px}
+.swb{background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:10px}
+.swbt{font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.swb.s .swbt{color:var(--gn)}.swb.w .swbt{color:var(--rd)}
+.swd{width:6px;height:6px;border-radius:50%}
+.swb.s .swd{background:var(--gn)}.swb.w .swd{background:var(--rd)}
+.swi{font-size:10px;color:var(--sub);padding:3px 0;border-bottom:1px solid var(--bd);line-height:1.4}
+.swi:last-child{border-bottom:none}
+.al{list-style:none}
+.ai{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--bd)}
+.ai:last-child{border-bottom:none}
+.pri{display:inline-block;padding:2px 7px;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;flex-shrink:0;margin-top:1px}
+.ph2{background:rgba(231,76,60,.12);color:var(--rd)}.pm{background:rgba(240,165,0,.12);color:var(--am)}.pl{background:rgba(46,204,113,.12);color:var(--gn)}
+.aia{font-size:12px;font-weight:700;color:var(--tx);margin-bottom:2px}
+.aid{font-size:11px;color:var(--sub);line-height:1.5}
+
+/* MASK CARDS - KEY SECTION */
+.mcard{background:var(--s1);border:1px solid var(--bd);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.mcard-head{padding:12px 13px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:8px}
+.mcard-emoji{font-size:20px}
+.mcard-name{font-size:14px;font-weight:700;flex:1}
+.mcard-freq{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--or2)}
+.mcard-freq.bl{color:var(--bl2)}
+.mcard-freq.pu{color:var(--pu)}
+.mcard-body{padding:12px 13px}
+.mcard-target{font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--sub);margin-bottom:10px}
+.ing-section{margin-bottom:10px}
+.ing-label{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.ing-label.must{color:var(--gn)}
+.ing-label.opt{color:var(--am)}
+.ing-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.ing-label.must .ing-dot{background:var(--gn)}
+.ing-label.opt .ing-dot{background:var(--am)}
+.ing-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bd)}
+.ing-row:last-child{border-bottom:none}
+.ing-amount{font-size:13px;font-weight:700;color:var(--tx);min-width:70px;flex-shrink:0}
+.ing-name{font-size:12px;color:var(--sub);flex:1}
+.ing-skip{font-size:10px;color:var(--mu);font-style:italic}
+.mcard-min{background:var(--s2);border-radius:6px;padding:9px 11px;margin-top:4px;font-size:11px;color:var(--sub);line-height:1.6}
+.mcard-min strong{color:var(--tx)}
+.mcard-tip{background:var(--s2);border-radius:6px;padding:9px 11px;margin-top:6px;font-size:11px;color:var(--sub);line-height:1.6;border-left:2px solid var(--or2)}
+.mcard-tip.bl{border-left-color:var(--bl2)}
+.mcard-tip.pu{border-left-color:var(--pu)}
+
+.pihbox{background:rgba(167,139,250,.05);border:1px solid rgba(167,139,250,.2);border-radius:10px;padding:13px;margin-bottom:9px}
+.piht{font-size:13px;font-weight:700;color:var(--pu);margin-bottom:7px}
+.pihd{font-size:12px;color:var(--sub);line-height:1.7;margin-bottom:9px}
+.pig{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.pit{background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:10px}
+.pitk{font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--pu);margin-bottom:3px}
+.pitv{font-size:11px;color:var(--sub);line-height:1.5}
+.ws{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:11px}
+.wd{background:var(--s2);border:1px solid var(--bd);border-radius:5px;padding:6px 2px;text-align:center}
+.wd.on{background:var(--orb);border-color:rgba(232,98,42,.3)}
+.wdn{font-size:8px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--sub);margin-bottom:2px}
+.wd.on .wdn{color:var(--or2)}
+.wdf{font-size:7px;color:var(--mu);line-height:1.3}
+.wd.on .wdf{color:var(--sub)}
+.exd{margin-bottom:12px}
+.exdh{font-size:9px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;color:var(--or2);padding-bottom:6px;border-bottom:1px solid var(--orb);margin-bottom:6px}
+.exr{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bd)}
+.exr:last-child{border-bottom:none}
+.exn{font-size:13px;color:var(--tx)}
+.exs{background:var(--orb);color:var(--or2);padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700}
+.fg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:9px}
+.fi{background:var(--s2);border:1px solid var(--bd);border-radius:7px;padding:8px;text-align:center}
+.fie{font-size:18px;margin-bottom:2px}.fin{font-size:9px;color:var(--sub)}
+.shake{background:linear-gradient(135deg,var(--orb),transparent);border:1px solid rgba(232,98,42,.2);border-radius:8px;padding:11px}
+.sht{font-size:12px;font-weight:700;color:var(--or2);margin-bottom:8px}
+.shake-ing{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(232,98,42,.1);font-size:12px}
+.shake-ing:last-child{border-bottom:none}
+.shake-amt{font-weight:700;color:var(--tx);min-width:80px}
+.shake-item{color:var(--sub)}
+.sl{list-style:none}
+.si{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--bd)}
+.si:last-child{border-bottom:none}
+.sn{width:18px;height:18px;border-radius:50%;background:var(--blb);border:1px solid var(--bl);color:var(--bl2);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.sn.o{background:var(--orb);border-color:var(--or);color:var(--or2)}
+.st{font-size:12px;color:var(--sub);line-height:1.5}
+.rm{position:relative;padding-left:14px}
+.rm::before{content:'';position:absolute;left:3px;top:5px;bottom:5px;width:1px;background:var(--bd)}
+.rmi{position:relative;padding:0 0 12px 14px}
+.rmi::before{content:'';position:absolute;left:-12px;top:4px;width:8px;height:8px;border-radius:50%;border:2px solid var(--bd);background:var(--bg);z-index:1}
+.rmi.on::before{border-color:var(--bl2);background:var(--bl)}
+.rmm{font-size:9px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--bl2);margin-bottom:2px}
+.rmi.on .rmm{color:var(--gn)}
+.rmt{font-size:12px;color:var(--sub);line-height:1.5}
+.ak{background:var(--s2);border:1px solid var(--bd);border-radius:7px;padding:10px;margin-bottom:6px}
+.akf{font-size:13px;font-weight:600;color:var(--tx);margin-bottom:4px}
+.akb{font-size:12px;color:var(--bl2);padding-top:4px;border-top:1px solid var(--bd)}
+.dc{background:var(--s1);border:1px solid var(--bd);border-radius:10px;margin-bottom:8px;overflow:hidden}
+.dch{padding:10px 13px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center}
+.dcn{font-size:14px;font-weight:700}.dcn.wo{color:var(--or2)}.dcn.re{color:var(--sub)}
+.dcf{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}.dcf.wo{color:var(--or2)}.dcf.re{color:var(--sub)}
+.dcb{padding:11px 13px}
+.dcs{margin-bottom:9px}.dcs:last-child{margin-bottom:0}
+.dcst{font-size:9px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;margin-bottom:5px}
+.dcst.s{color:var(--gn)}.dcst.m{color:var(--go2)}.dcst.h{color:var(--bl2)}.dcst.p{color:var(--pu)}
+.di{display:flex;gap:10px;padding:5px 0;border-bottom:1px solid var(--bd);font-size:12px;color:var(--sub)}
+.di:last-child{border-bottom:none}
+.dit{font-size:10px;font-weight:700;color:var(--mu);white-space:nowrap;min-width:52px}
+.dia{flex:1;line-height:1.4}
+.tg{display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700;margin-left:4px}
+.to{background:var(--orb);color:var(--or2)}.tb{background:var(--blb);color:var(--bl2)}.tge{background:rgba(46,204,113,.08);color:var(--gn)}.tpu{background:rgba(167,139,250,.08);color:var(--pu)}
+.chip{display:inline-flex;align-items:center;gap:3px;background:var(--gob);border:1px solid rgba(201,168,76,.2);border-radius:4px;padding:3px 7px;font-size:10px;font-weight:600;color:var(--go2);margin:2px}
+.chip.h{background:var(--blb);border-color:rgba(59,126,246,.2);color:var(--bl2)}
+.chip.p{background:rgba(167,139,250,.08);border-color:rgba(167,139,250,.2);color:var(--pu)}
+.chip.x{background:var(--s2);border-color:var(--bd);color:var(--mu);font-weight:400}
+.mleg{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:11px}
+.mli{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--sub)}
+.mld{width:7px;height:7px;border-radius:50%}
+.mwk{margin-bottom:9px}
+.mwkt{font-size:9px;letter-spacing:.13em;text-transform:uppercase;font-weight:600;color:var(--sub);margin-bottom:7px;padding-bottom:5px;border-bottom:1px solid var(--bd)}
+.mwd{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--bd)}
+.mwd:last-child{border-bottom:none}
+.mwdn{font-size:10px;font-weight:700;min-width:32px;flex-shrink:0}.mwdn.wo{color:var(--or2)}.mwdn.re{color:var(--mu)}
+.mwdc{flex:1;display:flex;flex-wrap:wrap;gap:2px}
+.tl{margin-bottom:9px}
+.tli{display:flex;gap:11px;margin-bottom:13px}
+.tld{width:30px;height:30px;border-radius:50%;background:var(--blb);border:2px solid var(--bl);color:var(--bl2);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tlb{padding-top:3px}
+.tlm{font-size:10px;font-weight:700;color:var(--bl2);letter-spacing:.07em;text-transform:uppercase;margin-bottom:3px}
+.tll{list-style:none}
+.tll li{font-size:12px;color:var(--sub);padding:2px 0;display:flex;gap:5px}
+.tll li::before{content:'✦';font-size:7px;color:var(--bl);margin-top:3px;flex-shrink:0}
+
+.barber-card{background:linear-gradient(135deg,rgba(255,112,64,.08),rgba(59,126,246,.08));border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:9px}
+.barber-title{font-size:13px;font-weight:700;color:var(--or2);margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.barber-line{font-size:13px;color:var(--tx);padding:7px 0;border-bottom:1px solid var(--bd);line-height:1.5}
+.barber-line:last-child{border-bottom:none}
+.barber-line .en{font-size:10px;color:var(--sub);display:block;margin-top:2px}
+.hairtype-box{background:rgba(111,160,255,.06);border:1px solid rgba(111,160,255,.2);border-radius:10px;padding:13px;margin-bottom:9px}
+.hairtype-title{font-size:13px;font-weight:700;color:var(--bl2);margin-bottom:8px}
+.hairtype-body{font-size:12px;color:var(--sub);line-height:1.7}
+
+.na{width:100%;background:var(--s1);border:1px solid var(--bd);border-radius:7px;padding:11px;color:var(--tx);font-family:system-ui,sans-serif;font-size:13px;resize:none;min-height:120px;outline:none;line-height:1.6}
+.na:focus{border-color:var(--bl)}
+.ns{width:100%;padding:11px;background:var(--blb);border:1px solid var(--bl);border-radius:7px;color:var(--bl2);font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.05em;text-transform:uppercase;margin-top:6px}
+.nc{text-align:center;font-size:10px;color:var(--gn);margin-top:4px;height:14px;opacity:0;transition:opacity .3s}
+.nc.on{opacity:1}
+.sr{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px}
+.sc2{background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:10px;text-align:center}
+.sv2{font-size:30px;font-weight:900;line-height:1}
+.sv2 span{font-size:13px;color:var(--sub)}
+.sl2{font-size:9px;color:var(--sub);letter-spacing:.07em;text-transform:uppercase;margin-top:2px}
+.sched-toggle{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none}
+.sched-toggle::-webkit-scrollbar{display:none}
+.sb{flex-shrink:0;padding:6px 12px;border-radius:20px;font-size:11px;font-weight:600;color:var(--sub);cursor:pointer;border:1px solid var(--bd);background:none;white-space:nowrap}
+.sb.on{background:var(--gob);border-color:var(--go2);color:var(--go2)}
+.sdv{display:none}.sdv.on{display:block}
+.fh{display:flex;align-items:center;gap:12px;background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:9px}
+.fhbig{font-size:48px;font-weight:900;color:var(--or2);line-height:1}
+.fhd{font-size:9px;color:var(--sub)}
+.fht{font-size:11px;color:var(--sub);line-height:1.6;flex:1}
+.fn-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px}
+.fn-item{background:var(--s2);border:1px solid var(--bd);border-left:2px solid var(--go2);border-radius:0 8px 8px 0;padding:9px}
+.fn-k{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--go2);font-weight:700;margin-bottom:2px}
+.fn-v{font-size:11px;color:var(--sub);line-height:1.4}
+
+/* ===== V10 PREMIUM ADDITIONS ===== */
+
+/* Page transition stagger */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.page.on>*{animation:fadeUp .45s cubic-bezier(.22,.61,.36,1) both}
+.page.on>*:nth-child(1){animation-delay:.00s}
+.page.on>*:nth-child(2){animation-delay:.04s}
+.page.on>*:nth-child(3){animation-delay:.08s}
+.page.on>*:nth-child(4){animation-delay:.12s}
+.page.on>*:nth-child(5){animation-delay:.16s}
+.page.on>*:nth-child(6){animation-delay:.20s}
+.page.on>*:nth-child(7){animation-delay:.24s}
+.page.on>*:nth-child(8){animation-delay:.28s}
+.page.on>*:nth-child(n+9){animation-delay:.30s}
+
+/* Subtle press feedback everywhere */
+.ci,.qc,.tab,.bn,.stab,.themeitem,.aisend,.ns{transition:transform .12s ease,opacity .12s ease,background .15s,border-color .15s}
+.ci:active,.qc:active{transform:scale(.97)}
+.bn:active,.tab:active{transform:scale(.94)}
+
+/* Checkmark pop animation */
+@keyframes checkpop{0%{transform:scale(0)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+.ci.done .cick{animation:checkpop .35s cubic-bezier(.34,1.56,.64,1)}
+
+/* Shimmer for active glow elements */
+@keyframes shine{0%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
+
+/* ---- XP / LEVEL WIDGET ---- */
+.xpwrap{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:13px;margin-bottom:9px;position:relative}
+.xphead{display:flex;align-items:center;gap:11px;margin-bottom:10px}
+.xpbadge{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--or2),var(--go2));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#0d0d0f;flex-shrink:0;box-shadow:0 0 0 3px var(--orb)}
+.xpinfo{flex:1}
+.xptitle{font-size:13px;font-weight:800}
+.xpsub{font-size:10px;color:var(--sub);margin-top:1px}
+.xpright{text-align:right}
+.xpval{font-size:12px;font-weight:800;color:var(--go2)}
+.xpneed{font-size:9px;color:var(--sub)}
+.xpbar{height:8px;background:var(--bd);border-radius:4px;overflow:hidden;position:relative}
+.xpfill{height:100%;background:linear-gradient(90deg,var(--or2),var(--go2));border-radius:4px;transition:width .7s cubic-bezier(.22,.61,.36,1);position:relative;overflow:hidden}
+.xpfill::after{content:'';position:absolute;top:0;bottom:0;left:0;right:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.45) 50%,transparent 70%);animation:shine 2.2s infinite}
+
+/* level up toast */
+#lvltoast{position:fixed;top:34px;left:50%;transform:translateX(-50%) translateY(-30px) scale(.9);background:linear-gradient(135deg,var(--or2),var(--go2));color:#0d0d0f;padding:11px 22px;border-radius:30px;font-weight:900;font-size:13px;letter-spacing:.04em;box-shadow:0 10px 30px rgba(230,57,80,.45);z-index:999;opacity:0;transition:all .45s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap}
+#lvltoast.show{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+
+/* XP pill that floats up from a ticked item */
+.xppop{position:fixed;font-size:12px;font-weight:800;color:var(--go2);pointer-events:none;z-index:998;animation:xpfloat 1s ease-out forwards}
+@keyframes xpfloat{0%{opacity:0;transform:translateY(0) scale(.8)}15%{opacity:1;transform:translateY(-6px) scale(1.1)}100%{opacity:0;transform:translateY(-46px) scale(1)}}
+
+/* ---- THEME PICKER ---- */
+.themepick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.themeitem{background:var(--s2);border:2px solid var(--bd);border-radius:9px;padding:9px 4px;text-align:center;cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent}
+.themeitem.active{border-color:var(--or2);box-shadow:0 0 0 1px var(--or2) inset}
+.themeitem.locked{opacity:.45}
+.themeswatch{width:22px;height:22px;border-radius:50%;margin:0 auto 5px;border:2px solid rgba(255,255,255,.15)}
+.themename{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+.themereq{font-size:8px;color:var(--sub);margin-top:2px;font-weight:600}
+.themelockicon{position:absolute;top:3px;right:5px;font-size:9px}
+
+/* ---- LEVEL-GATED FEATURE LOCK ---- */
+.lockcard{background:var(--s1);border:1px dashed var(--bd);border-radius:10px;padding:16px 13px;text-align:center;margin-bottom:9px}
+.lockicon{font-size:24px;margin-bottom:6px}
+.locktitle{font-size:13px;font-weight:800;margin-bottom:3px}
+.lockdesc{font-size:11px;color:var(--sub);line-height:1.6}
+.lockreq{display:inline-block;margin-top:8px;background:var(--orb);color:var(--or2);font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:.05em;text-transform:uppercase}
+.featbadge{font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:4px;background:rgba(167,139,250,.12);color:var(--pu);margin-left:6px;vertical-align:middle}
+
+/* ---- AI ASSISTANT TAB ---- */
+.aiwrap{display:flex;flex-direction:column;height:calc(100vh - 226px);min-height:300px}
+.aikeybox{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:12px 13px;margin-bottom:9px;font-size:11px;color:var(--sub);line-height:1.6}
+.aikeybox strong{color:var(--tx)}
+.aikeyrow{display:flex;gap:6px;margin-top:8px}
+.aikeyinput{flex:1;background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:9px;color:var(--tx);font-size:11px;font-family:monospace;outline:none}
+.aikeyinput:focus{border-color:var(--bl)}
+.aikeysave{background:var(--blb);border:1px solid var(--bl);border-radius:6px;color:var(--bl2);font-size:11px;font-weight:700;padding:0 12px;cursor:pointer}
+.aimsgs{flex:1;overflow-y:auto;padding:4px 1px 10px;-webkit-overflow-scrolling:touch}
+.aimsg{max-width:86%;padding:9px 12px;border-radius:13px;font-size:12.5px;line-height:1.55;margin-bottom:8px;white-space:pre-wrap}
+.aimsg.user{background:var(--or2);color:#fff;margin-left:auto;border-radius:13px 13px 3px 13px}
+.aimsg.bot{background:var(--s1);border:1px solid var(--bd);border-radius:13px 13px 13px 3px}
+.aimsg.sys{background:var(--blb);border:1px solid rgba(59,126,246,.2);color:var(--bl2);font-size:11px;text-align:center;margin:0 auto 8px;border-radius:10px;max-width:100%}
+.aitypingdot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--sub);margin-right:3px;animation:typedot 1.2s infinite}
+.aitypingdot:nth-child(2){animation-delay:.2s}.aitypingdot:nth-child(3){animation-delay:.4s}
+@keyframes typedot{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+.aiinputrow{display:flex;gap:7px;padding-top:9px;border-top:1px solid var(--bd);flex-shrink:0}
+.aiinput{flex:1;background:var(--s2);border:1px solid var(--bd);border-radius:22px;padding:11px 15px;color:var(--tx);font-size:13px;outline:none;font-family:system-ui,sans-serif}
+.aiinput:focus{border-color:var(--pu)}
+.aisend{background:linear-gradient(135deg,var(--or2),var(--go2));color:#0d0d0f;border:none;border-radius:50%;width:42px;height:42px;font-size:16px;font-weight:900;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.aisuggest{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:9px}
+.aisuggestchip{background:var(--s2);border:1px solid var(--bd);border-radius:20px;padding:6px 12px;font-size:11px;color:var(--sub);cursor:pointer;font-weight:600}
+
+/* ===== V12: HOME PAGE ===== */
+
+/* Vampire Clock */
+.vclock-wrap{text-align:center;padding:22px 0 14px;position:relative;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.vclock-moon{font-size:28px;display:block;margin-bottom:4px;animation:moonpulse 3s ease-in-out infinite}
+@keyframes moonpulse{0%,100%{filter:drop-shadow(0 0 6px rgba(230,57,80,.3))}50%{filter:drop-shadow(0 0 18px rgba(230,57,80,.7))}}
+.vclock-time{font-size:52px;font-weight:900;letter-spacing:.06em;line-height:1;background:linear-gradient(135deg,var(--tx),var(--or2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;position:relative}
+.vclock-time::after{content:'';position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:40px;height:1px;background:var(--or2);opacity:.4}
+.vclock-date{font-size:11px;color:var(--sub);letter-spacing:.18em;text-transform:uppercase;margin-top:8px;font-weight:600}
+.vclock-pulse{position:absolute;top:50%;left:50%;width:120px;height:120px;border-radius:50%;border:1px solid var(--or2);transform:translate(-50%,-50%);opacity:0;animation:clockring 3s ease-out infinite}
+@keyframes clockring{0%{opacity:.3;transform:translate(-50%,-50%) scale(.5)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.8)}}
+
+/* System Quote */
+.home-quote{background:rgba(230,57,80,.04);border:1px solid rgba(230,57,80,.15);border-left:2px solid var(--or2);border-radius:0 8px 8px 0;padding:10px 13px;margin-bottom:11px;font-size:12px;color:var(--sub);line-height:1.6;font-style:italic}
+.hq-tag{color:var(--or2);font-style:normal;font-weight:800;font-family:monospace;margin-right:6px;font-size:10px}
+
+/* Hunter ID Card */
+.hid-card{background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:15px;margin-bottom:11px;position:relative;overflow:hidden}
+.hid-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 90% 10%,rgba(230,57,80,.08),transparent 60%),radial-gradient(ellipse at 10% 90%,rgba(212,175,106,.05),transparent 60%);pointer-events:none}
+.hid-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:13px}
+.hid-label{font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:var(--sub);font-weight:700;margin-bottom:4px;font-family:monospace}
+.hid-name{font-size:24px;font-weight:900;letter-spacing:.08em;line-height:1}
+.hid-origin{font-size:10px;color:var(--sub);margin-top:3px}
+.hid-rank-badge{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--or2),var(--go2));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#0a0708;box-shadow:0 0 0 3px var(--orb),0 0 20px rgba(230,57,80,.3);cursor:pointer;flex-shrink:0}
+.hid-stats{display:flex;gap:10px;margin-bottom:13px}
+.hid-stat{flex:1;text-align:center}
+.hid-sk{display:block;font-size:8px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.hid-sk.str{color:var(--or2)}.hid-sk.vit{color:var(--gn)}.hid-sk.int{color:var(--bl2)}.hid-sk.per{color:var(--pu)}.hid-sk.face{color:var(--go2)}
+.hid-sv{display:block;font-size:18px;font-weight:900;line-height:1}
+.hid-bottom{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:10px}
+.hid-lvl{font-size:11px;font-weight:800;color:var(--tx);margin-bottom:3px}
+.hid-streak-row{font-size:11px;color:var(--sub)}
+.hid-kills{text-align:right;cursor:pointer}
+.hid-knum{font-size:22px;font-weight:900;color:var(--or2);line-height:1}
+.hid-klbl{font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--sub);font-weight:700}
+.hid-xprow{display:flex;align-items:center;gap:8px}
+.hid-xpbar{flex:1;height:5px;background:var(--bd);border-radius:3px;overflow:hidden}
+.hid-xpfill{height:100%;background:linear-gradient(90deg,var(--or2),var(--go2));border-radius:3px;transition:width .7s ease}
+.hid-xplbl{font-size:10px;color:var(--sub);font-weight:700;white-space:nowrap}
+
+/* Streak Hero */
+.streak-hero{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:11px}
+.streak-flame{font-size:32px;transition:font-size .3s}
+.streak-num{font-size:36px;font-weight:900;line-height:1}
+.streak-lbl{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--sub);font-weight:700}
+
+/* Boss Battle */
+.boss-wrap{background:var(--s1);border:1px solid rgba(230,57,80,.3);border-radius:12px;padding:14px;margin-bottom:11px;position:relative;overflow:hidden}
+.boss-wrap::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 100% 0%,rgba(230,57,80,.06),transparent 60%)}
+.boss-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.boss-label{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--or2);font-weight:800;margin-bottom:3px;font-family:monospace}
+.boss-name{font-size:16px;font-weight:900}
+.boss-icon{font-size:32px;filter:drop-shadow(0 0 8px rgba(230,57,80,.4))}
+.boss-hprow{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.boss-hplbl{font-size:9px;font-weight:800;color:var(--rd);letter-spacing:.08em;width:16px}
+.boss-hpbar{flex:1;height:10px;background:var(--bd);border-radius:5px;overflow:hidden;position:relative}
+.boss-hpfill{height:100%;background:linear-gradient(90deg,#8b0000,var(--rd));border-radius:5px;transition:width .6s ease;position:relative}
+.boss-hpfill::after{content:'';position:absolute;top:0;bottom:0;left:0;right:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);animation:shine 2s infinite}
+.boss-hpnum{font-size:10px;font-weight:800;color:var(--rd);white-space:nowrap;font-family:monospace}
+.boss-sub{font-size:10px;color:var(--sub);line-height:1.5}
+
+/* Arise Button */
+.arise-wrap{display:flex;flex-direction:column;align-items:center;padding:20px 0 10px}
+.arise-btn{position:relative;width:90px;height:90px;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}
+.arise-ring{position:absolute;inset:0;border-radius:50%;border:2px solid var(--or2);opacity:.5;animation:arisering 2s ease-in-out infinite}
+.arise-ring2{animation-delay:1s;border-color:var(--go2);opacity:.3}
+@keyframes arisering{0%,100%{transform:scale(1);opacity:.5}50%{transform:scale(1.12);opacity:.2}}
+.arise-inner{width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,rgba(230,57,80,.15),rgba(10,7,8,.9));border:1px solid var(--or2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;letter-spacing:.22em;color:var(--or2);box-shadow:0 0 20px rgba(230,57,80,.2);transition:box-shadow .2s,transform .2s}
+.arise-btn:active .arise-inner{box-shadow:0 0 40px rgba(230,57,80,.6);transform:scale(.95)}
+.arise-hint{font-size:10px;color:var(--mu);letter-spacing:.08em;text-transform:uppercase;margin-top:8px;font-weight:600}
+
+/* Arise Overlay */
+.arise-overlay{position:fixed;inset:0;background:#000;z-index:5000;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:80px}
+.arise-overlay.hidden{display:none}
+.arise-bg-glow{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:300px;height:300px;background:radial-gradient(circle,rgba(147,0,211,.3),transparent 70%);pointer-events:none}
+.arise-shadows{display:flex;justify-content:center;align-items:flex-end;gap:8px;padding:0 16px;width:100%;position:relative;z-index:2}
+.arise-shadow-figure{display:flex;flex-direction:column;align-items:center;gap:4px;opacity:0;transform:translateY(60px)}
+.arise-shadow-figure.risen{animation:shadowrise .6s cubic-bezier(.34,1.56,.64,1) forwards}
+@keyframes shadowrise{to{opacity:1;transform:translateY(0)}}
+.asf-icon{font-size:28px;filter:drop-shadow(0 0 10px rgba(147,0,211,.8))}
+.asf-name{font-size:9px;font-weight:800;letter-spacing:.12em;color:rgba(147,0,211,.9);text-transform:uppercase}
+.arise-title-wrap{position:absolute;top:30%;left:0;right:0;text-align:center;z-index:3}
+.arise-main-text{font-size:48px;font-weight:900;letter-spacing:.12em;color:transparent;text-shadow:0 0 30px rgba(147,0,211,.8);-webkit-text-stroke:1px rgba(147,0,211,.9);opacity:0;transform:scale(.7)}
+.arise-main-text.show{animation:arisetext .8s cubic-bezier(.34,1.56,.64,1) .5s forwards}
+@keyframes arisetext{to{opacity:1;transform:scale(1)}}
+.arise-close{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:.2em;color:var(--sub);text-transform:uppercase;cursor:pointer}
+
+/* S-Rank Overlay */
+.srank-overlay{position:fixed;inset:0;background:#000;z-index:6000;display:flex;align-items:center;justify-content:center;text-align:center}
+.srank-overlay.hidden{display:none}
+.srank-particles{position:absolute;inset:0;pointer-events:none}
+.srank-particle{position:absolute;width:3px;height:3px;border-radius:50%;background:var(--go2);animation:sparkle 2s ease-out infinite}
+@keyframes sparkle{0%{opacity:0;transform:translateY(0) scale(0)}20%{opacity:1}100%{opacity:0;transform:translateY(-120px) scale(.5)}}
+.srank-content{position:relative;z-index:2}
+.srank-pre{font-size:11px;letter-spacing:.2em;color:var(--go2);font-family:monospace;margin-bottom:10px;opacity:.8}
+.srank-title{font-size:80px;font-weight:900;letter-spacing:.1em;background:linear-gradient(135deg,var(--go2),#fff,var(--go2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:srankspin 3s ease-in-out infinite alternate;text-shadow:none}
+@keyframes srankspin{0%{filter:brightness(1)}100%{filter:brightness(1.5)}}
+.srank-sub{font-size:14px;letter-spacing:.28em;color:var(--go2);text-transform:uppercase;font-weight:800;margin-bottom:16px}
+.srank-msg{font-size:13px;color:var(--sub);line-height:1.7;max-width:280px;margin:0 auto}
+
+/* Stealth mode */
+.stealth-indicator{position:fixed;top:12px;right:12px;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--sub);z-index:9997;font-family:monospace;font-weight:700}
+.stealth-indicator.hidden{display:none}
+body.stealth .top,.body.stealth .tabs,.body.stealth .syncbar{opacity:.2}
+body.stealth .page{filter:brightness(.6)}
+
+/* Kill count flash */
+@keyframes killpop{0%{transform:scale(1)}40%{transform:scale(1.4);color:var(--rd)}100%{transform:scale(1)}}
+.killflash{animation:killpop .4s ease}
+
+/* Face score & habit heatmap on other pages */
+.face-log{display:flex;flex-direction:column;gap:7px}
+.face-entry{display:flex;align-items:center;gap:10px;background:var(--s2);border-radius:8px;padding:9px 11px}
+.face-date{font-size:10px;color:var(--sub);width:80px;flex-shrink:0}
+.face-score-val{font-size:16px;font-weight:900;width:32px}
+.face-bar{flex:1;height:5px;background:var(--bd);border-radius:3px;overflow:hidden}
+.face-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--or2),var(--go2));border-radius:3px}
+.face-add{display:flex;gap:7px;margin-bottom:10px}
+.face-input{flex:1;background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:9px;color:var(--tx);font-size:14px;text-align:center;outline:none}
+.face-input:focus{border-color:var(--or2)}
+
+/* Habit heatmap */
+.heatmap-wrap{display:flex;flex-wrap:wrap;gap:3px}
+.hm-cell{width:14px;height:14px;border-radius:3px;background:var(--bd);flex-shrink:0}
+.hm-cell.lvl1{background:rgba(230,57,80,.25)}
+.hm-cell.lvl2{background:rgba(230,57,80,.5)}
+.hm-cell.lvl3{background:rgba(230,57,80,.75)}
+.hm-cell.lvl4{background:var(--or2)}
+.hm-legend{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:10px;color:var(--sub)}
+.hm-legend .hm-cell{width:10px;height:10px}
+</style>
+#systack{position:fixed;top:34px;left:50%;transform:translateX(-50%);z-index:1000;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;width:100%;max-width:340px}
+.systoast{background:rgba(10,7,8,.92);border:1px solid var(--bl2);box-shadow:0 0 0 1px rgba(185,168,212,.15),0 10px 30px rgba(0,0,0,.5);color:var(--bl2);padding:10px 16px;border-radius:8px;font-family:monospace;font-size:11.5px;font-weight:700;letter-spacing:.02em;opacity:0;transform:translateY(-20px) scale(.95);transition:all .4s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.systoast.show{opacity:1;transform:translateY(0) scale(1)}
+.systoast .sys-tag{color:var(--or2);margin-right:5px}
+.systoast.rankup{border-color:var(--go2);color:var(--go2)}
+.systoast.rankup .sys-tag{color:var(--go2)}
+.systoast.quest{border-color:var(--gn);color:var(--gn)}
+.systoast.quest .sys-tag{color:var(--gn)}
+
+/* ===== V11: RANK BADGE ===== */
+.rankwrap{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:16px 13px;margin-bottom:9px;text-align:center;position:relative;overflow:hidden}
+.rankwrap::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,var(--orb),transparent 70%)}
+.ranklabel{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--sub);font-weight:700;margin-bottom:6px;position:relative}
+.rankletter{font-size:56px;font-weight:900;line-height:1;background:linear-gradient(135deg,var(--or2),var(--go2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;position:relative;text-shadow:0 0 30px var(--orb)}
+.ranktitle{font-size:12px;font-weight:800;color:var(--tx);margin-top:4px;position:relative}
+.ranknext{font-size:10px;color:var(--sub);margin-top:2px;position:relative}
+
+/* ===== V11: STAT SHEET ===== */
+.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px}
+.statcard{background:var(--s2);border:1px solid var(--bd);border-radius:9px;padding:11px}
+.statname{font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:3px}
+.statname.str{color:var(--or2)}.statname.vit{color:var(--gn)}.statname.intl{color:var(--bl2)}.statname.per{color:var(--pu)}
+.statval{font-size:26px;font-weight:900;line-height:1;margin-bottom:4px}
+.statbar{height:4px;background:var(--bd);border-radius:2px;overflow:hidden}
+.statbar i{display:block;height:100%;border-radius:2px}
+.statname.str~.statbar i,.statbar.str i{background:var(--or2)}
+.statdesc{font-size:9px;color:var(--sub);margin-top:4px;line-height:1.4}
+
+/* ===== V11: SKILL TREE ===== */
+.skillgrid{display:flex;flex-direction:column;gap:7px}
+.skillnode{display:flex;gap:10px;align-items:center;background:var(--s2);border:1px solid var(--bd);border-radius:9px;padding:10px 11px;position:relative}
+.skillnode.unlocked{border-color:rgba(95,169,122,.4);background:rgba(95,169,122,.05)}
+.skillnode.locked{opacity:.55}
+.skillicon{font-size:20px;width:34px;height:34px;border-radius:50%;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.skillnode.unlocked .skillicon{border-color:var(--gn);background:rgba(95,169,122,.1)}
+.skillbody{flex:1}
+.skillname{font-size:12px;font-weight:800;margin-bottom:1px}
+.skilldesc{font-size:10px;color:var(--sub);line-height:1.4}
+.skillreq{font-size:9px;color:var(--mu);margin-top:2px;font-weight:600}
+.skillbtn{flex-shrink:0;font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:6px 11px;border-radius:6px;border:1px solid var(--bd);background:none;color:var(--sub);cursor:pointer}
+.skillbtn.go{border-color:var(--or2);color:var(--or2);background:var(--orb)}
+.skillbtn.done{border-color:var(--gn);color:var(--gn);background:rgba(95,169,122,.08)}
+.skillpts{display:flex;justify-content:space-between;align-items:center;background:var(--s1);border:1px solid var(--bd);border-radius:9px;padding:11px 13px;margin-bottom:9px}
+.skillptsval{font-size:22px;font-weight:900;color:var(--go2)}
+.skillptslbl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--sub);font-weight:700}
+
+/* ===== V11: SHADOW ARMY ===== */
+.shadowgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.shadowcard{background:var(--s2);border:1px solid var(--bd);border-radius:9px;padding:12px 6px;text-align:center}
+.shadowcard.locked{opacity:.4}
+.shadowicon{font-size:26px;margin-bottom:5px;filter:drop-shadow(0 0 6px rgba(167,139,250,.4))}
+.shadowcard.locked .shadowicon{filter:none;opacity:.5}
+.shadowname{font-size:10px;font-weight:800}
+.shadowtitle{font-size:8px;color:var(--sub);margin-top:1px;line-height:1.3}
+
+/* ===== V11: QUEST PANEL ===== */
+.questbar{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:12px 13px;margin-bottom:13px}
+.questhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.questtitle{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--or2)}
+.questcount{font-size:13px;font-weight:900}
+.questprog{height:6px;background:var(--bd);border-radius:3px;overflow:hidden}
+.questprog i{display:block;height:100%;background:linear-gradient(90deg,var(--or2),var(--go2));border-radius:3px;transition:width .5s ease}
+.questsub{font-size:10px;color:var(--sub);margin-top:6px;line-height:1.5}
+.bonustag{display:inline-block;font-size:8px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--pu);background:rgba(153,102,204,.12);border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:middle}
+
+/* ===== APP LOCK ===== */
+#lockscreen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 28px;gap:0}
+#lockscreen.hidden{display:none}
+.lock-icon{font-size:38px;margin-bottom:16px;filter:drop-shadow(0 0 14px rgba(230,57,80,.4))}
+.lock-title{font-size:20px;font-weight:900;letter-spacing:.04em;margin-bottom:4px;text-align:center}
+.lock-sub{font-size:12px;color:var(--sub);margin-bottom:28px;text-align:center;line-height:1.6}
+.lock-dots{display:flex;gap:12px;margin-bottom:28px}
+.lock-dot{width:13px;height:13px;border-radius:50%;border:2px solid var(--bd);background:transparent;transition:background .15s,border-color .15s}
+.lock-dot.filled{background:var(--or2);border-color:var(--or2)}
+.lock-dot.error{background:var(--rd);border-color:var(--rd)}
+.lock-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:280px}
+.lock-key{background:var(--s2);border:1px solid var(--bd);border-radius:12px;padding:18px 0;font-size:20px;font-weight:800;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .1s,transform .08s,border-color .15s;user-select:none}
+.lock-key:active{transform:scale(.93);background:var(--s1);border-color:var(--or2)}
+.lock-key.del{font-size:16px;color:var(--sub)}
+.lock-key.empty{background:transparent;border-color:transparent;pointer-events:none}
+.lock-err{font-size:11px;color:var(--rd);margin-top:12px;min-height:16px;font-weight:700;letter-spacing:.04em;text-align:center;opacity:0;transition:opacity .2s}
+.lock-err.show{opacity:1}
+.lock-forgot{font-size:11px;color:var(--sub);margin-top:18px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+
+/* Setup screen (first launch) */
+#setupscreen{position:fixed;inset:0;background:var(--bg);z-index:9998;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 28px}
+#setupscreen.hidden{display:none}
+.setup-step{width:100%;max-width:320px;display:flex;flex-direction:column;align-items:center}
+.setup-step.hidden{display:none}
+.setup-badge{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--or2);background:var(--orb);border-radius:20px;padding:4px 12px;margin-bottom:16px}
+.setup-title{font-size:18px;font-weight:900;margin-bottom:6px;text-align:center}
+.setup-sub{font-size:12px;color:var(--sub);margin-bottom:24px;text-align:center;line-height:1.6}
+.setup-code{font-family:monospace;font-size:22px;font-weight:900;letter-spacing:.18em;background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:14px 22px;margin-bottom:8px;color:var(--go2);text-align:center}
+.setup-warn{font-size:10px;color:var(--sub);margin-bottom:22px;text-align:center;line-height:1.6;max-width:260px}
+.setup-btn{width:100%;max-width:280px;padding:15px;background:linear-gradient(135deg,var(--or2),var(--go2));color:#0d0d0f;font-size:14px;font-weight:900;border:none;border-radius:12px;cursor:pointer;letter-spacing:.04em}
+
+/* Recovery screen */
+#recovscreen{position:fixed;inset:0;background:var(--bg);z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 28px}
+#recovscreen.hidden{display:none}
+.recov-input{width:100%;max-width:280px;background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:14px;font-size:16px;font-family:monospace;color:var(--tx);outline:none;letter-spacing:.15em;text-align:center;margin-bottom:12px;box-sizing:border-box}
+.recov-input:focus{border-color:var(--or2)}
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN (first launch) -->
+<div id="setupscreen">
+  <div class="setup-step" id="step-pin">
+    <div class="setup-badge">Step 1 of 2</div>
+    <div class="lock-icon">🔐</div>
+    <div class="setup-title">Set Your PIN</div>
+    <div class="setup-sub">Choose a 4-digit PIN to lock Ryan OS. Only you will know it.</div>
+    <div class="lock-dots" id="setup-dots">
+      <div class="lock-dot"></div><div class="lock-dot"></div>
+      <div class="lock-dot"></div><div class="lock-dot"></div>
+    </div>
+    <div class="lock-pad">
+      <div class="lock-key" onclick="setupKey('1')">1</div><div class="lock-key" onclick="setupKey('2')">2</div><div class="lock-key" onclick="setupKey('3')">3</div>
+      <div class="lock-key" onclick="setupKey('4')">4</div><div class="lock-key" onclick="setupKey('5')">5</div><div class="lock-key" onclick="setupKey('6')">6</div>
+      <div class="lock-key" onclick="setupKey('7')">7</div><div class="lock-key" onclick="setupKey('8')">8</div><div class="lock-key" onclick="setupKey('9')">9</div>
+      <div class="lock-key empty"></div><div class="lock-key" onclick="setupKey('0')">0</div><div class="lock-key del" onclick="setupDel()">⌫</div>
+    </div>
+    <div class="lock-err" id="setup-err"></div>
+  </div>
+  <div class="setup-step hidden" id="step-confirm">
+    <div class="setup-badge">Step 2 of 2</div>
+    <div class="lock-icon">🔁</div>
+    <div class="setup-title">Confirm PIN</div>
+    <div class="setup-sub">Enter your PIN again to confirm.</div>
+    <div class="lock-dots" id="confirm-dots">
+      <div class="lock-dot"></div><div class="lock-dot"></div>
+      <div class="lock-dot"></div><div class="lock-dot"></div>
+    </div>
+    <div class="lock-pad">
+      <div class="lock-key" onclick="confirmKey('1')">1</div><div class="lock-key" onclick="confirmKey('2')">2</div><div class="lock-key" onclick="confirmKey('3')">3</div>
+      <div class="lock-key" onclick="confirmKey('4')">4</div><div class="lock-key" onclick="confirmKey('5')">5</div><div class="lock-key" onclick="confirmKey('6')">6</div>
+      <div class="lock-key" onclick="confirmKey('7')">7</div><div class="lock-key" onclick="confirmKey('8')">8</div><div class="lock-key" onclick="confirmKey('9')">9</div>
+      <div class="lock-key empty"></div><div class="lock-key" onclick="confirmKey('0')">0</div><div class="lock-key del" onclick="confirmDel()">⌫</div>
+    </div>
+    <div class="lock-err" id="confirm-err"></div>
+  </div>
+  <div class="setup-step hidden" id="step-code">
+    <div class="setup-badge">Backup Code</div>
+    <div class="lock-icon">🗝</div>
+    <div class="setup-title">Save Your Backup Code</div>
+    <div class="setup-sub">If you forget your PIN, this code unlocks the app. Screenshot it or write it down.</div>
+    <div class="setup-code" id="backup-code-display"></div>
+    <div class="setup-warn">⚠️ This code will never be shown again. Store it somewhere safe.</div>
+    <button class="setup-btn" onclick="finishSetup()">I've saved it — Enter Ryan OS</button>
+  </div>
+</div>
+
+<!-- LOCK SCREEN -->
+<div id="lockscreen" class="hidden">
+  <div class="lock-icon">🩸</div>
+  <div class="lock-title">RYAN OS</div>
+  <div class="lock-sub">Enter PIN to continue</div>
+  <div class="lock-dots" id="lock-dots">
+    <div class="lock-dot"></div><div class="lock-dot"></div>
+    <div class="lock-dot"></div><div class="lock-dot"></div>
+  </div>
+  <div class="lock-pad">
+    <div class="lock-key" onclick="lockKey('1')">1</div><div class="lock-key" onclick="lockKey('2')">2</div><div class="lock-key" onclick="lockKey('3')">3</div>
+    <div class="lock-key" onclick="lockKey('4')">4</div><div class="lock-key" onclick="lockKey('5')">5</div><div class="lock-key" onclick="lockKey('6')">6</div>
+    <div class="lock-key" onclick="lockKey('7')">7</div><div class="lock-key" onclick="lockKey('8')">8</div><div class="lock-key" onclick="lockKey('9')">9</div>
+    <div class="lock-key empty"></div><div class="lock-key" onclick="lockKey('0')">0</div><div class="lock-key del" onclick="lockDel()">⌫</div>
+  </div>
+  <div class="lock-err" id="lock-err"></div>
+  <div class="lock-forgot" onclick="showRecovery()">Forgot PIN?</div>
+</div>
+
+<!-- RECOVERY SCREEN -->
+<div id="recovscreen" class="hidden">
+  <div class="lock-icon">🗝</div>
+  <div class="lock-title">Backup Code</div>
+  <div class="lock-sub">Enter the backup code you saved<br>during setup to reset your PIN.</div>
+  <input class="recov-input" id="recov-input" type="text" maxlength="12" placeholder="XXXX-XXXX" autocomplete="off" spellcheck="false">
+  <button class="setup-btn" style="margin-top:4px" onclick="tryRecovery()">Unlock</button>
+  <div class="lock-err" id="recov-err" style="margin-top:10px"></div>
+  <div class="lock-forgot" style="margin-top:14px" onclick="hideRecovery()">← Back to PIN</div>
+</div>
+<div id="app">
+<div id="syncbar" class="syncing"><span class="sdot"></span><span id="smsg">Connecting...</span></div>
+<div class="top">
+  <div class="logo">RYAN OS</div>
+  <div class="topdate" id="tdate"></div>
+  <div class="streak">🔥 <span id="snum">0</span> days</div>
+</div>
+<div id="lvltoast"></div>
+<div id="systack"></div>
+<div class="tabs">
+  <button class="tab on" data-p="home">⌂ Home</button>
+  <button class="tab" data-p="today">✓ Today</button>
+  <button class="tab" data-p="physical">💪 Body</button>
+  <button class="tab bl" data-p="mind">🧠 Mind</button>
+  <button class="tab" data-p="schedule">📅 Schedule</button>
+  <button class="tab" data-p="month">🗓 Month</button>
+  <button class="tab" data-p="notes">📝 Notes</button>
+  <button class="tab" data-p="skills">🌿 Skills</button>
+  <button class="tab" data-p="army">🩸 Army</button>
+  <button class="tab" data-p="ai" style="color:var(--pu)">✦ AI</button>
+</div>
+<div class="pages">
+
+<!-- HOME -->
+<div class="page on" id="p-home">
+
+  <!-- VAMPIRE CLOCK -->
+  <div class="vclock-wrap" id="vclock-wrap" onclick="clockTap()">
+    <div class="vclock-moon" id="vclock-moon">🌙</div>
+    <div class="vclock-time" id="vclock-time">00:00</div>
+    <div class="vclock-date" id="vclock-date"></div>
+    <div class="vclock-pulse"></div>
+  </div>
+
+  <!-- SYSTEM QUOTE -->
+  <div class="home-quote">
+    <span class="hq-tag">[System]</span>
+    <span id="hq-text"></span>
+  </div>
+
+  <!-- HUNTER ID CARD -->
+  <div class="hid-card" id="hid-card">
+    <div class="hid-bg"></div>
+    <div class="hid-top">
+      <div class="hid-left">
+        <div class="hid-label">HUNTER ID · RYAN OS</div>
+        <div class="hid-name">RYAN</div>
+        <div class="hid-origin">Pakistan → Germany 🇩🇪</div>
+      </div>
+      <div class="hid-rank-badge" id="hid-rank" onclick="rankTap()">E</div>
+    </div>
+    <div class="hid-stats">
+      <div class="hid-stat"><span class="hid-sk str">STR</span><span class="hid-sv" id="hid-str">0</span></div>
+      <div class="hid-stat"><span class="hid-sk vit">VIT</span><span class="hid-sv" id="hid-vit">0</span></div>
+      <div class="hid-stat"><span class="hid-sk int">INT</span><span class="hid-sv" id="hid-int">0</span></div>
+      <div class="hid-stat"><span class="hid-sk per">PER</span><span class="hid-sv" id="hid-per">0</span></div>
+      <div class="hid-stat"><span class="hid-sk face">FACE</span><span class="hid-sv" id="hid-face">7.4</span></div>
+    </div>
+    <div class="hid-bottom">
+      <div class="hid-info">
+        <div class="hid-lvl">LVL <span id="hid-lvl">1</span> · <span id="hid-title">Fledgling</span></div>
+        <div class="hid-streak-row" id="hid-streak-row">🔥 <span id="hid-streak">0</span> day streak</div>
+      </div>
+      <div class="hid-kills" onclick="logoTap()">
+        <div class="hid-knum" id="hid-kills">0</div>
+        <div class="hid-klbl">ELIMINATED</div>
+      </div>
+    </div>
+    <div class="hid-xprow">
+      <div class="hid-xpbar"><div class="hid-xpfill" id="hid-xpfill" style="width:0%"></div></div>
+      <div class="hid-xplbl"><span id="hid-xp">0</span> XP</div>
+    </div>
+  </div>
+
+  <!-- STREAK FLAME -->
+  <div class="streak-hero">
+    <div class="streak-flame" id="streak-flame">🔥</div>
+    <div class="streak-num" id="streak-display">0</div>
+    <div class="streak-lbl">DAY STREAK</div>
+  </div>
+
+  <!-- BOSS BATTLE -->
+  <div class="boss-wrap">
+    <div class="boss-header">
+      <div class="boss-left">
+        <div class="boss-label">⚔ WEEKLY BOSS</div>
+        <div class="boss-name" id="boss-name">The Iron Sloth</div>
+      </div>
+      <div class="boss-icon" id="boss-icon">👹</div>
+    </div>
+    <div class="boss-hprow">
+      <div class="boss-hplbl">HP</div>
+      <div class="boss-hpbar"><div class="boss-hpfill" id="boss-hpfill" style="width:100%"></div></div>
+      <div class="boss-hpnum" id="boss-hpnum">700/700</div>
+    </div>
+    <div class="boss-sub" id="boss-sub">Complete tasks to deal damage. Full clear = 100 DMG bonus.</div>
+  </div>
+
+  <!-- ARISE BUTTON -->
+  <div class="arise-wrap">
+    <div class="arise-btn" id="arise-btn"
+      onmousedown="ariseHold(true)" onmouseup="ariseHold(false)"
+      ontouchstart="ariseHold(true)" ontouchend="ariseHold(false)">
+      <div class="arise-ring"></div>
+      <div class="arise-ring arise-ring2"></div>
+      <div class="arise-inner">ARISE</div>
+    </div>
+    <div class="arise-hint">Hold to awaken your shadows</div>
+  </div>
+
+  <!-- XP BAR -->
+  <div class="xpwrap">
+    <div class="xphead">
+      <div class="xpbadge" id="xpbadge">1</div>
+      <div class="xpinfo">
+        <div class="xptitle" id="xptitle">Level 1 · Fledgling</div>
+        <div class="xpsub">+10 XP per task · +1 stat per category</div>
+      </div>
+      <div class="xpright">
+        <div class="xpval" id="xpval">0 XP</div>
+        <div class="xpneed" id="xpneed">100 to next</div>
+      </div>
+    </div>
+    <div class="xpbar"><div class="xpfill" id="xpfill" style="width:0%"></div></div>
+  </div>
+
+  <!-- QUICK STATS -->
+  <div class="statgrid">
+    <div class="statcard">
+      <div class="statname str">⚔ STR</div>
+      <div class="statval" id="stat-str">0</div>
+      <div class="statbar"><i id="bar-str" style="width:0%;background:var(--or2)"></i></div>
+      <div class="statdesc">Physical</div>
+    </div>
+    <div class="statcard">
+      <div class="statname vit">🛡 VIT</div>
+      <div class="statval" id="stat-vit">0</div>
+      <div class="statbar"><i id="bar-vit" style="width:0%;background:var(--gn)"></i></div>
+      <div class="statdesc">Skin</div>
+    </div>
+    <div class="statcard">
+      <div class="statname intl">📖 INT</div>
+      <div class="statval" id="stat-int">0</div>
+      <div class="statbar"><i id="bar-int" style="width:0%;background:var(--bl2)"></i></div>
+      <div class="statdesc">Mind</div>
+    </div>
+    <div class="statcard">
+      <div class="statname per" style="color:var(--pu)">👁 PER</div>
+      <div class="statval" id="stat-per">0</div>
+      <div class="statbar"><i id="bar-per" style="width:0%;background:var(--pu)"></i></div>
+      <div class="statdesc">Streak</div>
+    </div>
+  </div>
+
+  <!-- THEMES -->
+  <div class="card">
+    <div class="ct">🎨 Themes — Unlock by Leveling Up</div>
+    <div class="themepick" id="themepick"></div>
+  </div>
+
+</div>
+
+<!-- ARISE CINEMATIC OVERLAY -->
+<div id="arise-overlay" class="arise-overlay hidden">
+  <div class="arise-bg-glow"></div>
+  <div class="arise-shadows" id="arise-shadows"></div>
+  <div class="arise-title-wrap">
+    <div class="arise-main-text" id="arise-main-text"></div>
+  </div>
+  <div class="arise-close" onclick="closeArise()">TAP TO DISMISS</div>
+</div>
+
+<!-- S-RANK OVERLAY -->
+<div id="srank-overlay" class="srank-overlay hidden">
+  <div class="srank-particles" id="srank-particles"></div>
+  <div class="srank-content">
+    <div class="srank-pre">[System]</div>
+    <div class="srank-title">RANK S</div>
+    <div class="srank-sub">APEX IMMORTAL</div>
+    <div class="srank-msg">You have transcended human limits.<br>The System acknowledges your ascension.</div>
+    <div class="arise-close" onclick="closeSrank()" style="position:relative;margin-top:30px">CLOSE</div>
+  </div>
+</div>
+
+<!-- STEALTH INDICATOR -->
+<div id="stealth-indicator" class="stealth-indicator hidden">⬛ STEALTH MODE</div>
+
+<!-- TODAY -->
+<div class="page" id="p-today">
+  <div class="ptitle o">Today</div>
+  <div class="psub">Syncs across all your devices ☁️</div>
+
+  <div class="questbar">
+    <div class="questhead">
+      <div class="questtitle">⚔ Daily Quest</div>
+      <div class="questcount"><span id="q-done">0</span> / <span id="q-total">0</span></div>
+    </div>
+    <div class="questprog"><i id="q-bar" style="width:0%"></i></div>
+    <div class="questsub" id="q-sub">Complete tasks to earn XP and stat points. No penalty for partial completion — every task counts.<span class="bonustag" id="q-bonus" style="display:none">FULL CLEAR BONUS</span></div>
+  </div>
+  <div class="card">
+    <div class="ct">📅 Habit Heatmap — Last 12 Weeks</div>
+    <div class="heatmap-wrap" id="heatmap-wrap"></div>
+    <div class="hm-legend">
+      <div class="hm-cell"></div><span>0</span>
+      <div class="hm-cell lvl1"></div><span>1–3</span>
+      <div class="hm-cell lvl2"></div><span>4–7</span>
+      <div class="hm-cell lvl3"></div><span>8–11</span>
+      <div class="hm-cell lvl4"></div><span>12+</span>
+    </div>
+  </div>
+  <div class="clsec">
+    <div class="clst o">💪 Physical</div>
+    <div class="ci" data-id="workout" data-cat="p" data-stat="str" onclick="tick(this)"><span class="ciem">🏋️</span><span class="cilb">Workout Done</span><div class="cick"></div></div>
+    <div class="ci" data-id="shake" data-cat="p" data-stat="str" onclick="tick(this)"><span class="ciem">🥤</span><span class="cilb">Mass Shake Drank</span><div class="cick"></div></div>
+    <div class="ci" data-id="eggs" data-cat="p" data-stat="str" onclick="tick(this)"><span class="ciem">🥚</span><span class="cilb">Soft Scrambled Eggs Eaten</span><div class="cick"></div></div>
+    <div class="ci" data-id="hair" data-cat="p" data-stat="str" onclick="tick(this)"><span class="ciem">💆</span><span class="cilb">Hair Routine Done</span><div class="cick"></div></div>
+  </div>
+  <div class="clsec">
+    <div class="clst g">✨ Skin</div>
+    <div class="ci" data-id="spf" data-cat="s" data-stat="vit" onclick="tick(this)"><span class="ciem">☀️</span><span class="cilb">SPF 50 Applied</span><div class="cick"></div></div>
+    <div class="ci" data-id="fmask" data-cat="s" data-stat="vit" onclick="tick(this)"><span class="ciem">🍋</span><span class="cilb">Face Mask Done</span><div class="cick"></div></div>
+    <div class="ci" data-id="potato" data-cat="s" data-stat="vit" onclick="tick(this)"><span class="ciem">🥔</span><span class="cilb">Potato Juice on PIH Spots</span><div class="cick"></div></div>
+    <div class="ci" data-id="water" data-cat="s" data-stat="vit" onclick="tick(this)"><span class="ciem">💧</span><span class="cilb">8 Glasses Water</span><div class="cick"></div></div>
+    <div class="ci" data-id="nodew" data-cat="s" data-stat="vit" onclick="tick(this)"><span class="ciem">🚫</span><span class="cilb">Reduced / Skipped Mountain Dew</span><div class="cick"></div></div>
+  </div>
+  <div class="clsec">
+    <div class="clst b">🧠 Mind</div>
+    <div class="ci" data-id="german" data-cat="m" data-stat="int" onclick="tick(this)"><span class="ciem">🇩🇪</span><span class="cilb">German Lesson Done</span><div class="cick"></div></div>
+    <div class="ci" data-id="anki" data-cat="m" data-stat="int" onclick="tick(this)"><span class="ciem">📚</span><span class="cilb">Anki Reviewed</span><div class="cick"></div></div>
+    <div class="ci" data-id="code" data-cat="m" data-stat="int" onclick="tick(this)"><span class="ciem">💻</span><span class="cilb">Coding Session Done</span><div class="cick"></div></div>
+    <div class="ci" data-id="draw" data-cat="m" data-stat="int" onclick="tick(this)"><span class="ciem">✏️</span><span class="cilb">Drawing 30 mins</span><div class="cick"></div></div>
+    <div class="ci" data-id="lit" data-cat="m" data-stat="int" onclick="tick(this)"><span class="ciem">📖</span><span class="cilb">Literature Reading</span><div class="cick"></div></div>
+    <div class="ci" data-id="plan" data-cat="m" onclick="tick(this)"><span class="ciem">📋</span><span class="cilb">Planned Tomorrow</span><div class="cick"></div></div>
+  </div>
+  <button class="rbtn" onclick="resetDay()">↺ Reset Today</button>
+</div>
+
+<!-- PHYSICAL -->
+<div class="page" id="p-physical">
+  <div class="ptitle o">Physical</div>
+  <div class="psub">Face · PIH · Masks · Workout · Nutrition</div>
+  <div class="stabs">
+    <button class="stab on" data-sv="face" onclick="sub(this,'physical')">🔬 Face</button>
+    <button class="stab" data-sv="pih" onclick="sub(this,'physical')">💊 PIH</button>
+    <button class="stab" data-sv="fmasks" onclick="sub(this,'physical')">🧴 Face Masks</button>
+    <button class="stab" data-sv="hmasks" onclick="sub(this,'physical')">💆 Hair Masks</button>
+    <button class="stab" data-sv="hairtype" onclick="sub(this,'physical')">✂️ Hair Type</button>
+    <button class="stab" data-sv="barber" onclick="sub(this,'physical')">💈 Barber</button>
+    <button class="stab" data-sv="workout" onclick="sub(this,'physical')">🏋️ Workout</button>
+    <button class="stab" data-sv="exer" onclick="sub(this,'physical')">🔥 Exercises</button>
+    <button class="stab" data-sv="nutr" onclick="sub(this,'physical')">🍳 Nutrition</button>
+  </div>
+
+  <!-- FACE -->
+  <div class="sv on" id="sv-face">
+    <div class="fh">
+      <div><div class="fhbig">7.4</div><div class="fhd">/10</div><span class="badge bo" style="margin-top:5px;display:inline-block">↑ from 6.4</span></div>
+      <div class="fht">Damon cut done ✓. Skin brighter, tan evening out, PIH fading fast. Biggest single jump yet. PIH fully cleared = <strong style="color:var(--or2)">7.5+</strong> locked in.</div>
+    </div>
+    <div class="fn-grid">
+      <div class="fn-item"><div class="fn-k">Progress</div><div class="fn-v">Skin noticeably brighter vs May 5th. Tan more even. PIH marks lighter.</div></div>
+      <div class="fn-item"><div class="fn-k">Jawline</div><div class="fn-v">Sharp — clean shave still the right call ✓</div></div>
+      <div class="fn-item"><div class="fn-k">Next Step</div><div class="fn-v">Damon cut + PIH fully cleared = 7.5+ locked in</div></div>
+      <div class="fn-item"><div class="fn-k">Still To Fix</div><div class="fn-v">PIH marks, dry lips, hair cut needed</div></div>
+    </div>
+    <div class="ct">Scores — Updated May 18 2026</div>
+    <div class="sg">
+      <div class="sc g"><div class="sclb">Bone Structure</div><div class="scv">7.5</div><div class="scbr"><div class="scf" style="width:75%"></div></div><div class="scnt">Strong — unchanged</div></div>
+      <div class="sc m"><div class="sclb">Symmetry</div><div class="scv">6.8</div><div class="scbr"><div class="scf" style="width:68%"></div></div><div class="scnt">Unibrow managed ✓</div></div>
+      <div class="sc m"><div class="sclb">Skin Quality</div><div class="scv">6.0</div><div class="scbr"><div class="scf" style="width:60%"></div></div><div class="scnt">↑ Brighter + more even since May 5</div></div>
+      <div class="sc g"><div class="sclb">Eyes & Brows</div><div class="scv">7.0</div><div class="scbr"><div class="scf" style="width:70%"></div></div><div class="scnt">Strong — unibrow clean</div></div>
+      <div class="sc g"><div class="sclb">Hair</div><div class="scv">6.5</div><div class="scbr"><div class="scf" style="width:65%"></div></div><div class="scnt">Wave good — Damon cut pending</div></div>
+      <div class="sc g"><div class="sclb">Jawline</div><div class="scv">7.5</div><div class="scbr"><div class="scf" style="width:75%"></div></div><div class="scnt">Sharp — confirmed ✓</div></div>
+    </div>
+    <div class="sw">
+      <div class="swb s"><div class="swbt"><span class="swd"></span>Working</div><div class="swi">Skin brighter — routine working</div><div class="swi">Tan reducing visibly</div><div class="swi">Clean shave showing jawline</div><div class="swi">Unibrow kept clean ✓</div><div class="swi">Oval face — Damon will suit perfectly</div></div>
+      <div class="swb w"><div class="swbt"><span class="swd"></span>Still To Fix</div><div class="swi">PIH cheek marks — fading but not done</div><div class="swi">Damon cut not done yet</div><div class="swi">Dry lips</div><div class="swi">Mountain Dew — slow healing</div></div>
+    </div>
+    <div class="ct">Action Plan</div>
+    <ul class="al">
+      <li class="ai"><span class="pri ph2">High</span><div><div class="aia">Keep PIH Routine Going</div><div class="aid">Potato juice AM + niacinamide PM + SPF every day. You're in week 2 — weeks 3–4 is when it really clears fast. Don't stop.</div></div></li>
+      <li class="ai"><span class="pri ph2">High</span><div><div class="aia">Get Damon Haircut</div><div class="aid">3–4 inches top, natural taper sides, no fade. Cut dry. Tell barber textured. This + clear skin = 7.5+ immediately.</div></div></li>
+      <li class="ai"><span class="pri pm">Med</span><div><div class="aia">Lip Balm Daily</div><div class="aid">Still dry in photos. Morning and night. 10 second fix.</div></div></li>
+      <li class="ai"><span class="pri pm">Med</span><div><div class="aia">Reduce Mountain Dew</div><div class="aid">Each can = insulin spike = potential new breakout = new PIH. You're almost clear — don't refill it.</div></div></li>
+    </ul>
+    <div class="ct">📈 Face Score Tracker</div>
+    <div class="face-add">
+      <input class="face-input" id="face-input" type="number" min="1" max="10" step="0.1" placeholder="New score (e.g. 7.5)">
+      <button class="ns" onclick="logFaceScore()">Log</button>
+    </div>
+    <div class="face-log" id="face-log"></div>
+  </div>
+
+  <!-- PIH -->
+  <div class="sv" id="sv-pih">
+    <div class="pihbox">
+      <div class="piht">💊 PIH — Post-Inflammatory Hyperpigmentation</div>
+      <div class="pihd">Those pink/dark spots on your right cheek are surface pigment left after pimples. NOT deep scarring. 100% fixable. You're already seeing results — keep the routine and they'll be mostly gone in 4–6 more weeks.</div>
+      <div class="pig">
+        <div class="pit"><div class="pitk">What it is</div><div class="pitv">Surface melanin overproduction. Not deep scarring.</div></div>
+        <div class="pit"><div class="pitk">Makes worse</div><div class="pitv">Sun, picking, sugar (Mountain Dew), skipping moisturizer.</div></div>
+        <div class="pit"><div class="pitk">Fades it</div><div class="pitv">Niacinamide, vitamin C, potato juice, SPF every day.</div></div>
+        <div class="pit"><div class="pitk">Timeline</div><div class="pitv">You're week 2. Mostly clear by week 6–8 with consistency.</div></div>
+      </div>
+    </div>
+
+    <!-- PIH Spot Treatment -->
+    <div class="mcard">
+      <div class="mcard-head"><span class="mcard-emoji">🥔</span><span class="mcard-name">Potato Spot Treatment</span><span class="mcard-freq pu">Every AM</span></div>
+      <div class="mcard-body">
+        <div class="mcard-target">Direct PIH fader · Melanin blocker</div>
+        <div class="ing-section">
+          <div class="ing-label must"><span class="ing-dot"></span>Must Have</div>
+          <div class="ing-row"><span class="ing-amount">1 slice</span><span class="ing-name">Raw potato (cut fresh)</span></div>
+        </div>
+        <div class="mcard-tip pu">Rub cut side directly on PIH marks. Leave juice on for 10 mins. Rinse. Do before SPF every morning. That's literally it — no mixing, no prep.</div>
+      </div>
+    </div>
+
+    <!-- Turmeric Spot Paste -->
+    <div class="mcard">
+      <div class="mcard-head"><span class="mcard-emoji">🌿</span><span class="mcard-name">Turmeric Spot Paste</span><span class="mcard-freq pu">Every PM</span></div>
+      <div class="mcard-body">
+        <div class="mcard-target">PIH fader · Applied on marks only</div>
+        <div class="ing-section">
+          <div class="ing-label must"><span class="ing-dot"></span>Must Have</div>
+          <div class="ing-row"><span class="ing-amount">½ tsp</span><span class="ing-name">Turmeric powder</span></div>
+          <div class="ing-row"><span class="ing-amount">1 tsp</span><span class="ing-name">Honey</span></div>
+        </div>
+        <div class="ing-section">
+          <div class="ing-label opt"><span class="ing-dot"></span>Optional — skip if no</div>
+          <div class="ing-row"><span class="ing-amount">3–4 drops</span><span class="ing-name">Lemon juice</span><span class="ing-skip">skip if sensitive</span></div>
+        </div>
+        <div class="mcard-min"><strong>Minimum:</strong> ½ tsp turmeric + 1 tsp honey. Mix to paste. Apply only on dark spots with fingertip. Leave 15 mins. Rinse. Do PM only.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ct">Full PIH Daily Routine</div>
+      <ul class="sl">
+        <li class="si"><div class="sn o">AM</div><div class="st">Potato slice on marks → 10 mins → rinse → Vitamin C serum → moisturizer → SPF 50</div></li>
+        <li class="si"><div class="sn o">PM</div><div class="st">Face wash → Niacinamide 10% serum on marks → Turmeric spot paste → moisturizer</div></li>
+        <li class="si"><div class="sn o">2×/wk</div><div class="st">AHA exfoliant (glycolic or lactic acid) — removes dead pigmented cells</div></li>
+        <li class="si"><div class="sn o">1×/wk</div><div class="st">Neem mask — stops new breakouts = stops new PIH forming</div></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- FACE MASKS -->
+  <div class="sv" id="sv-fmasks">
+    <div class="card" style="background:rgba(201,168,76,.05);border-color:rgba(201,168,76,.2);margin-bottom:10px">
+      <div style="font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--go2);margin-bottom:4px">How to read</div>
+      <div style="font-size:11px;color:var(--sub);line-height:1.6"><span style="color:var(--gn);font-weight:700">GREEN = must have.</span> <span style="color:var(--am);font-weight:700">AMBER = skip if you don't have it.</span> Every mask works with just the green ingredients.</div>
+    </div>
+
+    <!-- De-Tan -->
+    <div class="mcard">
+      <div class="mcard-head"><span class="mcard-emoji">🍋</span><span class="mcard-name">De-Tan Brightening</span><span class="mcard-freq">3×/week</span></div>
+      <div class="mcard-body">
+        <div class="mcard-target">Sun Tan · PIH · Uneven Tone</div>
+        <div class="ing-section">
+          <div class="ing-label must"><span class="ing-dot"></span>Must Have</div>
+          <div class="ing-row"><span class="ing-amount">2 tbsp</span><span class="ing-name">Besan (gram flour)</span></div>
+        </div>
+        <div class="ing-section">
+          <div class="ing-label opt"><span class="ing-dot"></span>Optional — skip if no</div>
+          <div class="ing-row"><span class="ing-amount">¼ tsp</span><span class="ing-name">Turmeric powder</span><span class="ing-skip">skip if stain worries</span></div>
+          <div class="ing-row"><span class="ing-amount">1 tsp</span><span class="ing-name">Lemon juice</span><span class="ing-skip">skip if sensitive</span></div>
+          <div class="ing-row"><span class="ing-amount">2 tbsp</span><span class="ing-name">Raw milk</span><span class="ing-skip">or just use water</span></div>
+          <div class="ing-row"><span class="ing-amount">1 tsp</span><span class="ing-name">Honey</span><span class="ing-skip">skip freely</span></div>
+        </div>
+        <div class="mcard-min"><strong>Minimum version:</strong> 2 tbsp besan + enough water to make a paste. Mix, apply, 15–20 mins, lukewarm rinse.</div>
+        <div class="mcard-tip">Apply on face and neck. Do not apply lemon on active pimples. Moisturize immediately after rinsing.</div>
+      </div>
+    </div>
+
+    <!-- Hydration -->
+    <div class="mcard">
+      <div class="mcard-head"><span class="mcard-emoji">🥒</span><span class="mcard-name">Hydration Mask</span><span class="mcard-freq">2×/week</span></div>
+      <div class="mcard-body">
+        <div class="mcard-target">Rough Texture · Dryness · Moisture Barrier</div>
+        <div class="ing-section">
+          <div class="ing-label must"><span class="ing-dot"></span>Must Have</div>
+          <div class="ing-row"><span class="ing-amount">2 tbsp</span><span class="ing-name">Aloe vera gel</span></div>
+        </div>
+        <div class="ing-section">
+          <div class="ing-label opt"><span class="ing-dot"></span>Optional — skip if no</div>
+          <div class="ing-row"><span class="ing-amount">1 tsp</span><span class="ing-name">Rose water</span><span class="ing-skip">skip freely</span></div>
+          <div class="ing-row"><span class="ing-amount">½ tsp</span><span class="ing-name">Glycerin</span><span class="ing-skip">skip freely</span></div>
+          <div class="ing-row"><span class="ing-amount">3–4 drops</span><span class="ing-name">Vitamin E oil</span><span class="ing-skip">skip freely</span></div>
+        </div>
+        <div class="mcard-min"><strong>Minimum version:</strong> 2 tbsp aloe vera gel alone on face. Leave 20–30 mins or overnight as sleep mask. No rinse if overnight.</div>
+      </div>
+    </div>
+
+    <!-- Tomato -->
+    <div class="mcard">
+      <div class="mcard-head"><span class="mcard-emoji">🍅</span><span class="mcard-name">Tomato Reversal</span><span class="mcard-freq">2×/week</span></div>
+      <div class="mcard-body">
+        <div class="mcard-target">Deep Tan · PIH · Pore Clarity</div>
+        <div class="ing-section">
+          <div class="ing-label must"><span class="ing-dot"></span>Must Have</div>
+          <div class="ing-row"><span class="ing-amount">1 medium</span><span class="ing-name">Fresh tomato (blend or squish)</span></div>
+        </div>
+        <div class="ing-section">
+          <div class="ing-label opt"><span class="ing-dot"></span>Optional — skip if no</div>
+          <div class="ing-row"><span class="ing-amount">1 tsp</span><span class="ing-name">Lemon juice</span><span class="ing-skip">skip if sensitive</span></div>
+          <div class="ing-row"><span class="ing-amount">1 tsp</span><span class="ing-name">Rice flour</span><span class="ing-skip">or swap 1 tsp besan</span></div>
+        </div>
+        <div class="mcard-min"><strong>Minimum version:</strong> Just rub the cut side of 1 tomato directly on your face. Leave 15 mins. Easiest mask here — no mixing needed.</div>
+        <div class="mcard-tip">Evenings only. Lemon makes skin sun-sensitive so don't do this in the morning.</div>
+      </div>
+    </div>
+
+    <!-- Neem -->
+    <div class="mcard">
+      <div class="mcard-head"><span class="mcard-emoji">🌿</span><span class="mcard-name">Neem Anti-Breakout</span><span class="mcard-freq">1×/week</span></div>
+      <div class="mcard-body">
+        <div class="mcard-target">Breakouts · Prevents New PIH · Oiliness</div>
+        <div class="ing-section">
+          <div class="ing-label must"><span class="ing-dot"></span>Must Have — pick ONE</div>
+          <div class="ing-row"><span class="ing-amount">1 tbsp</span><span class="ing-name">Neem powder</span></div>
+          <div class="ing-row"><span class="ing-amount">OR 2 drops</span><span class="ing-name">Neem oil</span></div>
+          <div class="ing-row"><span class="ing-amount">OR 6–8</span><span class="ing-name">Fresh neem leaves (crushed)</span></div>
+        </div>
+        <div class="ing-section">
+          <div class="ing-label opt"><span class="ing-dot"></span>Optional — skip if no</div>
+          <div class="ing-row"><span class="ing-amount">1 tbsp</span><span class="ing-name">Multani mitti</span><span class="ing-skip">or swap 1 tbsp besan</span></div>
+          <div class="ing-row"><span class="ing-amount">1–2 tbsp</span><span class="ing-name">Rose water</span><span class="ing-skip">or plain water</span></div>
+        </div>
+        <div class="mcard-min"><strong>Minimum version:</strong> 1 tbsp neem powder + enough water to make paste. Apply, leave 15 mins, rinse. Done.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ct">Daily Skincare Order</div>
+      <ul class="sl">
+        <li class="si"><div class="sn o">1</div><div class="st">AM — Gentle face wash</div></li>
+        <li class="si"><div class="sn o">2</div><div class="st">AM — Potato slice on PIH spots, 10 mins</div></li>
+        <li class="si"><div class="sn o">3</div><div class="st">AM — Vitamin C serum (optional but good)</div></li>
+        <li class="si"><div class="sn o">4</div><div class="st">AM — Moisturizer + SPF 50 (non-negotiable)</div></li>
+        <li class="si"><div class="sn o">5</div><div class="st">PM — Face wash</div></li>
+        <li class="si"><div class="sn o">6</div><div class="st">PM — Niacinamide serum on PIH marks</div></li>
+        <li class="si"><div class="sn o">7</div><div class="st">PM — Turmeric spot paste on marks only, 15 mins</div></li>
+        <li class="si"><div class="sn o">8</div><div class="st">PM — Moisturizer + lip balm</div></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- HAIR MASKS -->
+  <div class="sv" id="sv-hmasks">
+    <div class="card" style="background:rgba(59,126,246,.05);border-color:rgba(59,126,246,.2);margin-bottom:10px">
+      <div style="font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--bl2);margin-bottom:4px">How to read</div>
+      <div style="font-size:11px;color:var(--sub);line-height:1.6"><span style="color:var(--gn);font-weight:700">GREEN = must have.</span> <span style="color:var(--am);font-weight:700">AMBER = skip if no.</span> Apply on dry hair before washing.</div>
+    </div>
+
+    <!-- Wave Definition -->
+    <div class="mcard">
+      <div class="mcard-head"><span class="mcard-emoji">🥥</span><span class="mcard-name">Wave Definition</span><span class="mcard-freq bl">Weekly</span></div>
+      <div class="mcard-body">
+        <div class="mcard-target">Moisture · Wave Definition · Frizz Control</div>
+        <div class="ing-section">
+          <div class="ing-label must"><span class="ing-dot"></span>Must Have</div>
+          <div class="ing-row"><span class="ing-amount">2 tbsp</span><span class="ing-name">Coconut oil (warm slightly)</span></div>
+        </div>
+        <div class="ing-section">
+          <div class="ing-label opt"><span class="ing-dot"></span>Optional — skip if no</div>
+          <div class="ing-row"><span class="ing-amount">1 tbsp</span><span class="ing-name">Honey</span><span class="ing-skip">skip freely</span></div>
+          <div class="ing-row"><span class="ing-amount">1</span><span class="ing-name">Egg yolk only (no white)</span><span class="ing-skip">skip freely</span></div>
+        </div>
+        <div class="mcard-min"><strong>Minimum:</strong> 2 tbsp coconut oil alone from mid-lengths to ends. Shower cap, 30–45 mins. Cool water rinse — never hot.</div>
+        <div class="mcard-tip bl">Apply on DRY hair. Dry hair absorbs oil way better than damp.</div>
+      </div>
+    </div>
+
+    <!-- Scalp -->
+    <div class="mcard">
+      <div class="mcard-head"><span class="mcard-emoji">🌱</span><span class="mcard-name">Scalp Health</span><span class="mcard-freq bl">Weekly</span></div>
+      <div class="mcard-body">
+        <div class="mcard-target">Flakiness · Scalp Buildup · Growth</div>
+        <div class="ing-section">
+          <div class="ing-label must"><span class="ing-dot"></span>Must Have</div>
+          <div class="ing-row"><span class="ing-amount">2 tbsp</span><span class="ing-name">Aloe vera gel</span></div>
+        </div>
+        <div class="ing-section">
+          <div class="ing-label opt"><span class="ing-dot"></span>Optional — skip if no</div>
+          <div class="ing-row"><span class="ing-amount">1 tsp</span><span class="ing-name">Lemon juice</span><span class="ing-skip">skip if scalp sensitive</span></div>
+          <div class="ing-row"><span class="ing-amount">1 tbsp</span><span class="ing-name">Coconut oil</span><span class="ing-skip">skip freely</span></div>
+        </div>
+        <div class="mcard-min"><strong>Minimum:</strong> 2 tbsp aloe vera massaged into scalp. Leave 20 mins. Rinse well before shampoo.</div>
+      </div>
+    </div>
+
+    <!-- Protein -->
+    <div class="mcard">
+      <div class="mcard-head"><span class="mcard-emoji">🥚</span><span class="mcard-name">Protein Strength</span><span class="mcard-freq bl">Every 2 weeks</span></div>
+      <div class="mcard-body">
+        <div class="mcard-target">Strength · Breakage Prevention</div>
+        <div class="ing-section">
+          <div class="ing-label must"><span class="ing-dot"></span>Must Have</div>
+          <div class="ing-row"><span class="ing-amount">1 whole</span><span class="ing-name">Egg (whole — yolk + white)</span></div>
+        </div>
+        <div class="ing-section">
+          <div class="ing-label opt"><span class="ing-dot"></span>Optional — skip if no</div>
+          <div class="ing-row"><span class="ing-amount">1 tbsp</span><span class="ing-name">Plain yogurt</span><span class="ing-skip">skip freely</span></div>
+          <div class="ing-row"><span class="ing-amount">1 tsp</span><span class="ing-name">Olive oil</span><span class="ing-skip">skip freely</span></div>
+        </div>
+        <div class="mcard-min"><strong>Minimum:</strong> 1 whole egg, beat it, apply root to tip. 20–30 mins. COOL water only — hot water scrambles egg in your hair.</div>
+      </div>
+    </div>
+
+    <!-- Pre-Wash Oil -->
+    <div class="mcard">
+      <div class="mcard-head"><span class="mcard-emoji">🫚</span><span class="mcard-name">Pre-Wash Oil Treatment</span><span class="mcard-freq bl">Night before wash</span></div>
+      <div class="mcard-body">
+        <div class="mcard-target">Shine · Thickness · Growth</div>
+        <div class="ing-section">
+          <div class="ing-label must"><span class="ing-dot"></span>Must Have</div>
+          <div class="ing-row"><span class="ing-amount">1 tbsp</span><span class="ing-name">Castor oil (most important)</span></div>
+        </div>
+        <div class="ing-section">
+          <div class="ing-label opt"><span class="ing-dot"></span>Optional — skip if no</div>
+          <div class="ing-row"><span class="ing-amount">1 tbsp</span><span class="ing-name">Coconut oil</span><span class="ing-skip">skip freely</span></div>
+          <div class="ing-row"><span class="ing-amount">5 drops</span><span class="ing-name">Rosemary essential oil</span><span class="ing-skip">optional but great for growth</span></div>
+        </div>
+        <div class="mcard-min"><strong>Minimum:</strong> 1 tbsp castor oil massaged into scalp and hair. Leave overnight. Wash morning after. Castor oil alone is powerful for thickness.</div>
+      </div>
+    </div>
+
+    <!-- Quick Revival -->
+    <div class="mcard">
+      <div class="mcard-head"><span class="mcard-emoji">⚡</span><span class="mcard-name">Quick Revival Mask</span><span class="mcard-freq bl">When dull/dry</span></div>
+      <div class="mcard-body">
+        <div class="mcard-target">Instant Shine · Softness · Dull Hair Fix</div>
+        <div class="ing-section">
+          <div class="ing-label must"><span class="ing-dot"></span>Must Have — pick ONE</div>
+          <div class="ing-row"><span class="ing-amount">2 tbsp</span><span class="ing-name">Coconut oil</span></div>
+          <div class="ing-row"><span class="ing-amount">OR 2 tbsp</span><span class="ing-name">Mustard oil</span></div>
+          <div class="ing-row"><span class="ing-amount">OR 2 tbsp</span><span class="ing-name">Any cooking oil (emergency)</span></div>
+        </div>
+        <div class="ing-section">
+          <div class="ing-label opt"><span class="ing-dot"></span>Optional — skip if no</div>
+          <div class="ing-row"><span class="ing-amount">2 tbsp</span><span class="ing-name">Plain yogurt OR milk</span><span class="ing-skip">adds shine, skip freely</span></div>
+          <div class="ing-row"><span class="ing-amount">1</span><span class="ing-name">Egg yolk</span><span class="ing-skip">protein boost, skip freely</span></div>
+          <div class="ing-row"><span class="ing-amount">1 tsp</span><span class="ing-name">Lemon juice (scalp only)</span><span class="ing-skip">fights dullness, skip freely</span></div>
+        </div>
+        <div class="mcard-min"><strong>Minimum:</strong> 2 tbsp coconut oil + 2 tbsp yogurt. Mix, apply dry hair, 30–60 mins, shampoo twice. This is the combo you did today daddy.</div>
+        <div class="mcard-tip bl">Shampoo twice after — first wash removes oil, second wash actually cleans. Cool/lukewarm water only.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ct">Damon Styling Method (After Cut)</div>
+      <ul class="sl">
+        <li class="si"><div class="sn">1</div><div class="st">Wash with sulfate-free shampoo</div></li>
+        <li class="si"><div class="sn">2</div><div class="st">Scrunch gently with old t-shirt — no towel rubbing</div></li>
+        <li class="si"><div class="sn">3</div><div class="st">Small amount light clay or hair cream (not gel)</div></li>
+        <li class="si"><div class="sn">4</div><div class="st">Air dry — no aggressive blow drying</div></li>
+        <li class="si"><div class="sn">5</div><div class="st">Push back or part when 80% dry</div></li>
+      </ul>
+    </div>
+  </div>
+
+
+  <!-- HAIR TYPE -->
+  <div class="sv" id="sv-hairtype">
+    <div class="hairtype-box">
+      <div class="hairtype-title">✂️ Your Hair Type: 2A Thick</div>
+      <div class="hairtype-body">
+        <strong style="color:var(--tx)">Why 2A not 2B:</strong><br>
+        Hair lies flat on top, wave only shows at sides and ends, goes flat easily without product, classic helmet effect when unstyled. Thick but loose wave pattern — not defined from root.<br><br>
+        <strong style="color:var(--tx)">Season 1 Damon is also 2A</strong> — his hair behaves exactly like yours. You copied the right person and the cut proves it.<br><br>
+        <strong style="color:var(--tx)">For styling:</strong> Mousse or light cream only. Scrunch UP while damp. Never smooth down. Air dry completely without touching.
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct">2A — What Works vs What Kills It</div>
+      <div class="sw">
+        <div class="swb s"><div class="swbt"><span class="swd"></span>Use These</div><div class="swi">Mousse — best for 2A</div><div class="swi">Light hair cream</div><div class="swi">Sea salt spray</div><div class="swi">Scrunch upward motion</div><div class="swi">Air dry completely</div></div>
+        <div class="swb w"><div class="swbt"><span class="swd"></span>Avoid These</div><div class="swi">Gel — makes it crunchy</div><div class="swi">Clay — too heavy, flattens</div><div class="swi">Heavy oils before styling</div><div class="swi">Smoothing downward</div><div class="swi">Blow drying aggressively</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct">Damon Styling Steps — Right Now</div>
+      <ul class="sl">
+        <li class="si"><div class="sn">1</div><div class="st">Wash sulfate-free shampoo</div></li>
+        <li class="si"><div class="sn">2</div><div class="st">Scrunch gently with old t-shirt — no towel rubbing</div></li>
+        <li class="si"><div class="sn">3</div><div class="st">Small amount mousse or light cream — NOT clay, NOT gel</div></li>
+        <li class="si"><div class="sn">4</div><div class="st">Air dry — no blow drying</div></li>
+        <li class="si"><div class="sn">5</div><div class="st">Scrunch upward from ends while drying — never smooth down</div></li>
+        <li class="si"><div class="sn">6</div><div class="st">Leave completely alone when 80% dry — don't touch it</div></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- BARBER -->
+  <div class="sv" id="sv-barber">
+    <div class="card" style="background:rgba(255,112,64,.05);border-color:rgba(255,112,64,.2);margin-bottom:10px">
+      <div style="font-size:11px;color:var(--sub);line-height:1.6">Show the <strong style="color:var(--tx)">Season 1 Damon photo</strong> first, then say these lines. If he tries anything different: <strong style="color:var(--or2)">"Nahi, photo ki tarah karo bas."</strong></div>
+    </div>
+    <div class="barber-card">
+      <div class="barber-title">💈 Roman Urdu — Say This</div>
+      <div class="barber-line">Yeh photo dekho, mujhe bilkul aisa hi chahiye.<span class="en">Look at this photo, I want exactly this.</span></div>
+      <div class="barber-line">Upar ke baal 3 se 4 inch rakhna, zyada chote mat karna.<span class="en">Keep the top 3 to 4 inches, don't cut too short.</span></div>
+      <div class="barber-line">Sides pe fade bilkul nahi — bas halka sa taper karna.<span class="en">No fade at all on sides — just a light taper.</span></div>
+      <div class="barber-line">Undercut nahi chahiye.<span class="en">I don't want an undercut.</span></div>
+      <div class="barber-line">Baal aage ki taraf naturally girne dena, photo ki tarah.<span class="en">Let the hair fall forward naturally, like the photo.</span></div>
+      <div class="barber-line">Baalon ki natural lehar rehne dena, seedha mat karna.<span class="en">Keep the natural wave, don't straighten it.</span></div>
+      <div class="barber-line">Texture dena — heavy layers nahi, bas dead ends aur extra bulk hatana.<span class="en">Give texture — no heavy layers, just remove dead ends and bulk.</span></div>
+      <div class="barber-line">Dry cut karo agar ho sake — taake natural wave dikhe.<span class="en">Cut dry if possible so the natural wave shows.</span></div>
+      <div class="barber-line">Kaat ke baad blow dry mat karna aur gel mat lagana.<span class="en">After cutting don't blow dry and don't apply gel.</span></div>
+    </div>
+    <div class="card">
+      <div class="ct">If He Tries Anything Else</div>
+      <ul class="sl">
+        <li class="si"><div class="sn">→</div><div class="st">Fade suggest kare: <strong style="color:var(--or2)">"Nahi chahiye"</strong></div></li>
+        <li class="si"><div class="sn">→</div><div class="st">Zyada chota kare: <strong style="color:var(--or2)">"Rukiye, zyada mat kato"</strong></div></li>
+        <li class="si"><div class="sn">→</div><div class="st">Gel lagaye: <strong style="color:var(--or2)">"Kuch mat lagao shukriya"</strong></div></li>
+        <li class="si"><div class="sn">→</div><div class="st">Confused lage: <strong style="color:var(--or2)">"Photo ki tarah karo bas"</strong></div></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- WORKOUT -->
+  <div class="sv" id="sv-workout">
+    <div class="ws">
+      <div class="wd on"><div class="wdn">Mon</div><div class="wdf">Chest+Tri</div></div>
+      <div class="wd on"><div class="wdn">Tue</div><div class="wdf">Back+Bi</div></div>
+      <div class="wd"><div class="wdn">Wed</div><div class="wdf">Rest</div></div>
+      <div class="wd on"><div class="wdn">Thu</div><div class="wdf">Shld+Core</div></div>
+      <div class="wd on"><div class="wdn">Fri</div><div class="wdf">Full Upper</div></div>
+      <div class="wd"><div class="wdn">Sat</div><div class="wdf">Rest</div></div>
+      <div class="wd"><div class="wdn">Sun</div><div class="wdf">Reset</div></div>
+    </div>
+    <div class="card">
+      <div class="ct">Weekly Focus</div>
+      <div class="exr"><span class="exn"><span class="badge bo" style="margin-right:5px">Mon</span>Chest + Triceps</span></div>
+      <div class="exr"><span class="exn"><span class="badge bo" style="margin-right:5px">Tue</span>Back + Biceps</span></div>
+      <div class="exr"><span class="exn"><span class="badge bx" style="margin-right:5px">Wed</span>Rest / Mobility</span></div>
+      <div class="exr"><span class="exn"><span class="badge bo" style="margin-right:5px">Thu</span>Shoulders + Core</span></div>
+      <div class="exr"><span class="exn"><span class="badge bo" style="margin-right:5px">Fri</span>Full Upper Light</span></div>
+      <div class="exr"><span class="exn"><span class="badge bx" style="margin-right:5px">Sat</span>Rest</span></div>
+      <div class="exr" style="border:none"><span class="exn"><span class="badge bx" style="margin-right:5px">Sun</span>Rest + Plan</span></div>
+    </div>
+  </div>
+
+  <!-- EXERCISES -->
+  <div class="sv" id="sv-exer">
+    <div class="exd"><div class="exdh">Monday — Chest + Triceps</div><div class="exr"><span class="exn">Push-ups</span><span class="exs">4×12–15</span></div><div class="exr"><span class="exn">Incline Push-ups</span><span class="exs">3×12</span></div><div class="exr"><span class="exn">Dips (chair)</span><span class="exs">3×10</span></div><div class="exr"><span class="exn">Close-grip Push-ups</span><span class="exs">3×10</span></div><div class="exr" style="border:none"><span class="exn">Bench Dips</span><span class="exs">3×12</span></div></div>
+    <div class="exd"><div class="exdh">Tuesday — Back + Biceps</div><div class="exr"><span class="exn">Pull-ups</span><span class="exs">4×max</span></div><div class="exr"><span class="exn">Inverted Rows</span><span class="exs">3×10</span></div><div class="exr"><span class="exn">Superman Holds</span><span class="exs">3×30s</span></div><div class="exr"><span class="exn">Chin-ups</span><span class="exs">3×max</span></div><div class="exr" style="border:none"><span class="exn">Backpack Curls</span><span class="exs">3×12</span></div></div>
+    <div class="exd"><div class="exdh">Thursday — Shoulders + Core</div><div class="exr"><span class="exn">Pike Push-ups</span><span class="exs">4×10</span></div><div class="exr"><span class="exn">Shoulder Taps</span><span class="exs">3×20</span></div><div class="exr"><span class="exn">Plank</span><span class="exs">3×45s</span></div><div class="exr"><span class="exn">Leg Raises</span><span class="exs">3×12</span></div><div class="exr" style="border:none"><span class="exn">Bicycle Crunches</span><span class="exs">3×20</span></div></div>
+    <div class="exd"><div class="exdh">Friday — Full Upper</div><div class="exr"><span class="exn">Push-ups</span><span class="exs">3×10</span></div><div class="exr"><span class="exn">Pull-ups / Rows</span><span class="exs">3×8</span></div><div class="exr"><span class="exn">Pike Push-ups</span><span class="exs">3×8</span></div><div class="exr" style="border:none"><span class="exn">Light Core Circuit</span><span class="exs">2 rounds</span></div></div>
+  </div>
+
+  <!-- NUTRITION -->
+  <div class="sv" id="sv-nutr">
+    <div class="warn"><span>🥤</span><div><strong>Daily Mountain Dew</strong> = insulin spike = breakout risk = new PIH. Soft scrambled eggs daily are great — keep those. Replace Dew with green tea when you can.</div></div>
+    <div class="sr">
+      <div class="sc2"><div class="sv2">55<span>kg</span></div><div class="sl2">Current</div></div>
+      <div class="sc2"><div class="sv2">+10<span>kg</span></div><div class="sl2">Goal Gain</div></div>
+    </div>
+    <div class="ct">Key Foods</div>
+    <div class="fg">
+      <div class="fi"><div class="fie">🥚</div><div class="fin">Soft Scrambled Eggs ✓</div></div>
+      <div class="fi"><div class="fie">🍗</div><div class="fin">Chicken</div></div>
+      <div class="fi"><div class="fie">🍚</div><div class="fin">Rice</div></div>
+      <div class="fi"><div class="fie">🥜</div><div class="fin">Peanut Butter</div></div>
+      <div class="fi"><div class="fie">🍌</div><div class="fin">Bananas</div></div>
+      <div class="fi"><div class="fie">🥛</div><div class="fin">Milk</div></div>
+      <div class="fi"><div class="fie">🥣</div><div class="fin">Oats</div></div>
+      <div class="fi"><div class="fie">🥔</div><div class="fin">Potatoes</div></div>
+      <div class="fi"><div class="fie">🍵</div><div class="fin">Green Tea (replace Dew)</div></div>
+    </div>
+    <div class="shake">
+      <div class="sht">💪 Daily Mass Shake</div>
+      <div class="shake-ing"><span class="shake-amt">2 glasses</span><span class="shake-item">Full-fat milk</span></div>
+      <div class="shake-ing"><span class="shake-amt">1–2</span><span class="shake-item">Bananas</span></div>
+      <div class="shake-ing"><span class="shake-amt">2 tbsp</span><span class="shake-item">Peanut butter</span></div>
+      <div class="shake-ing"><span class="shake-amt">2 tbsp</span><span class="shake-item">Oats (optional)</span></div>
+      <div style="font-size:10px;color:var(--mu);margin-top:8px;font-style:italic">~600–800 kcal. Blend and drink every single day. Non-negotiable.</div>
+    </div>
+  </div>
+</div>
+
+<!-- MIND -->
+<div class="page" id="p-mind">
+  <div class="ptitle b">Mind</div>
+  <div class="psub">German · Python · Drawing · Literature · Timeline</div>
+  <div class="stabs">
+    <button class="stab on bl" data-sv="german" onclick="sub(this,'mind')">🇩🇪 German</button>
+    <button class="stab bl" data-sv="python" onclick="sub(this,'mind')">🐍 Python</button>
+    <button class="stab bl" data-sv="drawing" onclick="sub(this,'mind')">✏️ Drawing</button>
+    <button class="stab bl" data-sv="lit" onclick="sub(this,'mind')">📖 Literature</button>
+    <button class="stab bl" data-sv="apps" onclick="sub(this,'mind')">📱 Apps</button>
+    <button class="stab bl" data-sv="tl" onclick="sub(this,'mind')">📈 Timeline</button>
+  </div>
+  <div class="sv on" id="sv-german">
+    <div class="card"><div class="ct">Daily Method — DW Nicos Weg A1</div><ul class="sl"><li class="si"><div class="sn">1</div><div class="st">1 lesson daily</div></li><li class="si"><div class="sn">2</div><div class="st">Learn from context/images first — no immediate translation</div></li><li class="si"><div class="sn">3</div><div class="st">Add 5 useful sentences to Anki</div></li><li class="si"><div class="sn">4</div><div class="st">Speak them out loud</div></li><li class="si"><div class="sn">5</div><div class="st">Google Translate only when truly stuck</div></li></ul></div>
+    <div class="card"><div class="ct">Anki Cards — Sentence Style</div><div class="ak"><div class="akf">🇬🇧 I am tired</div><div class="akb">🇩🇪 Ich bin müde</div></div><div class="ak"><div class="akf">🇩🇪 Ich komme aus Pakistan</div><div class="akb">🇬🇧 I come from Pakistan</div></div><div class="ak"><div class="akf">🇬🇧 Where is the station?</div><div class="akb">🇩🇪 Wo ist der Bahnhof?</div></div></div>
+    <div class="card"><div class="ct">Goal Timeline</div><div class="rm"><div class="rmi on"><div class="rmm">Month 1 — NOW</div><div class="rmt">Basic greetings, introductions, phrases</div></div><div class="rmi"><div class="rmm">Month 2</div><div class="rmt">Better listening, sentence recognition</div></div><div class="rmi"><div class="rmm">Month 3</div><div class="rmt">Comfortable A1</div></div><div class="rmi"><div class="rmm">Month 6 🎯</div><div class="rmt">Strong A2 / entering B1</div></div></div></div>
+  </div>
+  <div class="sv" id="sv-python">
+    <div class="card"><div class="ct">Daily Method</div><ul class="sl"><li class="si"><div class="sn">1</div><div class="st">Learn topic in SoloLearn / Mimo</div></li><li class="si"><div class="sn">2</div><div class="st">Immediately code it in Replit</div></li><li class="si"><div class="sn">3</div><div class="st">Save every project on GitHub</div></li></ul></div>
+    <div class="card"><div class="ct">Roadmap</div><div class="rm"><div class="rmi on"><div class="rmm">Month 1 — NOW</div><div class="rmt">print(), variables, input(), if/else</div></div><div class="rmi"><div class="rmm">Month 2</div><div class="rmt">Loops, functions, strings</div></div><div class="rmi"><div class="rmm">Month 3</div><div class="rmt">Lists, dictionaries, mini projects</div></div><div class="rmi"><div class="rmm">Month 4–6 🚀</div><div class="rmt">File handling, automation, bigger projects</div></div></div></div>
+    <div class="card"><div class="ct">Project Ideas</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div style="background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:9px;font-size:12px;font-weight:600;display:flex;gap:6px"><span style="color:var(--bl2)">⬡</span>Calculator</div><div style="background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:9px;font-size:12px;font-weight:600;display:flex;gap:6px"><span style="color:var(--bl2)">⬡</span>Number Guessing</div><div style="background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:9px;font-size:12px;font-weight:600;display:flex;gap:6px"><span style="color:var(--bl2)">⬡</span>Quiz Game</div><div style="background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:9px;font-size:12px;font-weight:600;display:flex;gap:6px"><span style="color:var(--bl2)">⬡</span>To-do List</div><div style="background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:9px;font-size:12px;font-weight:600;display:flex;gap:6px"><span style="color:var(--bl2)">⬡</span>AI Chatbot</div><div style="background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:9px;font-size:12px;font-weight:600;display:flex;gap:6px"><span style="color:var(--bl2)">⬡</span>Automation Script</div></div></div>
+  </div>
+  <div class="sv" id="sv-drawing">
+    <div class="card"><div class="ct">Daily 30 Min</div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px"><div style="background:var(--s2);border:1px solid var(--bd);border-radius:7px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:900;color:var(--or2);line-height:1;margin-bottom:3px">10m</div><div style="font-size:10px;color:var(--sub);line-height:1.4">Lines · Circles · Shapes</div></div><div style="background:var(--s2);border:1px solid var(--bd);border-radius:7px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:900;color:var(--or2);line-height:1;margin-bottom:3px">10m</div><div style="font-size:10px;color:var(--sub);line-height:1.4">Draw from photo reference</div></div><div style="background:var(--s2);border:1px solid var(--bd);border-radius:7px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:900;color:var(--or2);line-height:1;margin-bottom:3px">10m</div><div style="font-size:10px;color:var(--sub);line-height:1.4">Free draw anything</div></div></div></div>
+    <div class="card"><div class="ct">Roadmap</div><div class="rm"><div class="rmi on"><div class="rmm">Month 1 — NOW</div><div class="rmt">Shapes, line control, shading basics</div></div><div class="rmi"><div class="rmm">Month 2</div><div class="rmt">Faces, eyes, head structure</div></div><div class="rmi"><div class="rmm">Month 3</div><div class="rmt">Hands, anatomy basics</div></div><div class="rmi"><div class="rmm">Month 4+ 🎨</div><div class="rmt">Your own style developing</div></div></div></div>
+  </div>
+  <div class="sv" id="sv-lit">
+    <div class="card">
+      <div class="ct">📖 Literature — Active Daily Habit</div>
+      <div style="font-size:12px;color:var(--sub);line-height:1.7;margin-bottom:10px">You're reading literature — this directly accelerates German learning (sentence pattern recognition), builds vocabulary, and trains sustained focus. The same focus you need for coding. Keep it going every day.</div>
+      <ul class="sl"><li class="si"><div class="sn">1</div><div class="st">20–30 pages daily minimum</div></li><li class="si"><div class="sn">2</div><div class="st">Note 3–5 new words or phrases per session</div></li><li class="si"><div class="sn">3</div><div class="st">Find German parallels — add to Anki</div></li><li class="si"><div class="sn">4</div><div class="st">Think about what you read — don't just speed through</div></li></ul>
+    </div>
+  </div>
+  <div class="sv" id="sv-apps">
+    <div class="card"><div class="ct" style="color:var(--go2)">🇩🇪 German</div><ul class="sl"><li class="si"><div class="sn">·</div><div class="st">DW Learn German — daily main lesson</div></li><li class="si"><div class="sn">·</div><div class="st">Anki — morning + night review</div></li><li class="si"><div class="sn">·</div><div class="st">Google Translate — when stuck only</div></li></ul></div>
+    <div class="card"><div class="ct" style="color:var(--bl2)">🐍 Coding</div><ul class="sl"><li class="si"><div class="sn">·</div><div class="st">SoloLearn / Mimo — learn concepts</div></li><li class="si"><div class="sn">·</div><div class="st">Replit — code immediately after</div></li><li class="si"><div class="sn">·</div><div class="st">GitHub — upload every project</div></li></ul></div>
+    <div class="card"><div class="ct">✏️ Drawing + 📖 Reading + ⚙️ Productivity</div><ul class="sl"><li class="si"><div class="sn">·</div><div class="st">Sketchbook / ibis Paint X — daily 30 min</div></li><li class="si"><div class="sn">·</div><div class="st">Pinterest — reference images</div></li><li class="si"><div class="sn">·</div><div class="st">Notion — night planning</div></li><li class="si"><div class="sn">·</div><div class="st">Forest — focus blocks</div></li></ul></div>
+  </div>
+  <div class="sv" id="sv-tl">
+    <div class="tl">
+      <div class="tli"><div class="tld">1M</div><div class="tlb"><div class="tlm">After 1 Month</div><ul class="tll"><li>Discipline forming strong</li><li>German basics solid</li><li>Basic Python done</li><li>PIH visibly fading</li><li>Damon cut acquired</li></ul></div></div>
+      <div class="tli"><div class="tld">3M</div><div class="tlb"><div class="tlm">After 3 Months</div><ul class="tll"><li>Physique improvement visible</li><li>A1 German confidence</li><li>GitHub projects live</li><li>PIH mostly cleared</li><li>Face score 7.3+</li></ul></div></div>
+      <div class="tli"><div class="tld">6M</div><div class="tlb"><div class="tlm">After 6 Months 🎯</div><ul class="tll"><li>Unrecognizable transformation</li><li>A2/B1 German</li><li>Real coding portfolio</li><li>Visible body growth</li><li>Face score 7.5+</li><li>Literature habit locked in</li></ul></div></div>
+    </div>
+    <div class="quotebox"><div class="qt">"Most people waste free time.<br>Use yours to become unrecognizable."</div><div class="qa">Ryan OS · 2026</div></div>
+  </div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="page" id="p-schedule">
+  <div class="ptitle g">Schedule</div>
+  <div class="psub">Full week — workouts · masks · timetable per day</div>
+  <div class="sched-toggle">
+    <button class="sb on" onclick="sched(this,'detail')">📋 Day Detail</button>
+    <button class="sb" onclick="sched(this,'quick')">⚡ Quick View</button>
+  </div>
+  <div class="sdv on" id="sd-detail">
+    <div class="dc"><div class="dch"><span class="dcn wo">Monday</span><span class="dcf wo">Chest + Triceps</span></div><div class="dcb">
+      <div class="dcs"><div class="dcst s">Timetable</div>
+        <div class="di"><div class="dit">9:00 AM</div><div class="dia">German DW + Anki<span class="tg tb">MIND</span></div></div>
+        <div class="di"><div class="dit">10:15 AM</div><div class="dia">Exam / academic prep<span class="tg tge">EXAM</span></div></div>
+        <div class="di"><div class="dit">1:00 PM</div><div class="dia">Python SoloLearn + Replit<span class="tg tb">MIND</span></div></div>
+        <div class="di"><div class="dit">2:30 PM</div><div class="dia">Chest + Triceps<span class="tg to">PHYS</span></div></div>
+        <div class="di"><div class="dit">6:00 PM</div><div class="dia">Drawing 30 min<span class="tg to">DRAW</span></div></div>
+        <div class="di"><div class="dit">7:00 PM</div><div class="dia">Literature reading<span class="tg tpu">LIT</span></div></div>
+        <div class="di"><div class="dit">9:00 PM</div><div class="dia">Anki review + plan tomorrow</div></div>
+      </div>
+      <div class="dcs"><div class="dcst m">Face Masks</div><div><span class="chip">🍋 De-Tan (2 tbsp besan)</span><span class="chip">🌿 Neem (weekly)</span></div></div>
+      <div class="dcs"><div class="dcst h">Hair Masks</div><div><span class="chip h">🥥 Wave Def. (2 tbsp coconut)</span><span class="chip h">🌱 Scalp (2 tbsp aloe)</span></div></div>
+      <div class="dcs"><div class="dcst p">PIH</div><div><span class="chip p">🥔 Potato slice AM</span><span class="chip p">🌿 ½tsp turmeric+1tsp honey PM</span></div></div>
+    </div></div>
+    <div class="dc"><div class="dch"><span class="dcn wo">Tuesday</span><span class="dcf wo">Back + Biceps</span></div><div class="dcb">
+      <div class="dcs"><div class="dcst s">Timetable</div>
+        <div class="di"><div class="dit">9:00 AM</div><div class="dia">German DW + Anki<span class="tg tb">MIND</span></div></div>
+        <div class="di"><div class="dit">1:00 PM</div><div class="dia">Python coding<span class="tg tb">MIND</span></div></div>
+        <div class="di"><div class="dit">2:30 PM</div><div class="dia">Back + Biceps<span class="tg to">PHYS</span></div></div>
+        <div class="di"><div class="dit">6:00 PM</div><div class="dia">Drawing 30 min<span class="tg to">DRAW</span></div></div>
+        <div class="di"><div class="dit">7:00 PM</div><div class="dia">Literature reading<span class="tg tpu">LIT</span></div></div>
+        <div class="di"><div class="dit">9:00 PM</div><div class="dia">Anki review + plan tomorrow</div></div>
+      </div>
+      <div class="dcs"><div class="dcst m">Face Masks</div><div><span class="chip">🥒 Hydration (2 tbsp aloe)</span></div></div>
+      <div class="dcs"><div class="dcst h">Hair Masks</div><div><span class="chip x">Rest day for hair</span></div></div>
+      <div class="dcs"><div class="dcst p">PIH</div><div><span class="chip p">🥔 Potato AM</span><span class="chip p">🌿 Turmeric paste PM</span></div></div>
+    </div></div>
+    <div class="dc"><div class="dch"><span class="dcn re">Wednesday</span><span class="dcf re">Rest + Recovery</span></div><div class="dcb">
+      <div class="dcs"><div class="dcst s">Timetable</div>
+        <div class="di"><div class="dit">Morning</div><div class="dia">German deep work<span class="tg tb">MIND</span></div></div>
+        <div class="di"><div class="dit">Midday</div><div class="dia">Light coding review<span class="tg tb">MIND</span></div></div>
+        <div class="di"><div class="dit">Afternoon</div><div class="dia">Drawing deep session<span class="tg to">DRAW</span></div></div>
+        <div class="di"><div class="dit">Evening</div><div class="dia">Literature reading<span class="tg tpu">LIT</span></div></div>
+        <div class="di"><div class="dit">9:00 PM</div><div class="dia">Anki review</div></div>
+      </div>
+      <div class="dcs"><div class="dcst m">Face Masks</div><div><span class="chip">🍅 Tomato (1 fresh tomato)</span></div></div>
+      <div class="dcs"><div class="dcst h">Hair Masks</div><div><span class="chip h">🫚 Pre-Wash Oil (1 tbsp castor — overnight)</span></div></div>
+      <div class="dcs"><div class="dcst p">PIH</div><div><span class="chip p">🥔 Potato AM</span><span class="chip p">🌿 Turmeric paste PM</span></div></div>
+    </div></div>
+    <div class="dc"><div class="dch"><span class="dcn wo">Thursday</span><span class="dcf wo">Shoulders + Core</span></div><div class="dcb">
+      <div class="dcs"><div class="dcst s">Timetable</div>
+        <div class="di"><div class="dit">9:00 AM</div><div class="dia">German DW + Anki<span class="tg tb">MIND</span></div></div>
+        <div class="di"><div class="dit">1:00 PM</div><div class="dia">Python coding<span class="tg tb">MIND</span></div></div>
+        <div class="di"><div class="dit">2:30 PM</div><div class="dia">Shoulders + Core<span class="tg to">PHYS</span></div></div>
+        <div class="di"><div class="dit">6:00 PM</div><div class="dia">Drawing 30 min<span class="tg to">DRAW</span></div></div>
+        <div class="di"><div class="dit">7:00 PM</div><div class="dia">Literature reading<span class="tg tpu">LIT</span></div></div>
+        <div class="di"><div class="dit">9:00 PM</div><div class="dia">Anki review + plan</div></div>
+      </div>
+      <div class="dcs"><div class="dcst m">Face Masks</div><div><span class="chip">🍋 De-Tan (2 tbsp besan)</span></div></div>
+      <div class="dcs"><div class="dcst h">Hair Masks</div><div><span class="chip h">🥚 Protein (1 egg — every 2nd Thu)</span></div></div>
+      <div class="dcs"><div class="dcst p">PIH</div><div><span class="chip p">🥔 Potato AM</span><span class="chip p">🌿 Turmeric paste PM</span></div></div>
+    </div></div>
+    <div class="dc"><div class="dch"><span class="dcn wo">Friday</span><span class="dcf wo">Full Upper</span></div><div class="dcb">
+      <div class="dcs"><div class="dcst s">Timetable</div>
+        <div class="di"><div class="dit">9:00 AM</div><div class="dia">German DW + Anki<span class="tg tb">MIND</span></div></div>
+        <div class="di"><div class="dit">1:00 PM</div><div class="dia">Python coding<span class="tg tb">MIND</span></div></div>
+        <div class="di"><div class="dit">2:30 PM</div><div class="dia">Full Upper workout<span class="tg to">PHYS</span></div></div>
+        <div class="di"><div class="dit">6:00 PM</div><div class="dia">Drawing 30 min<span class="tg to">DRAW</span></div></div>
+        <div class="di"><div class="dit">7:00 PM</div><div class="dia">Literature reading<span class="tg tpu">LIT</span></div></div>
+        <div class="di"><div class="dit">9:00 PM</div><div class="dia">Anki + week review</div></div>
+      </div>
+      <div class="dcs"><div class="dcst m">Face Masks</div><div><span class="chip">🍅 Tomato (1 fresh tomato)</span></div></div>
+      <div class="dcs"><div class="dcst h">Hair Masks</div><div><span class="chip x">No mask — wash tomorrow</span></div></div>
+      <div class="dcs"><div class="dcst p">PIH</div><div><span class="chip p">🥔 Potato AM</span><span class="chip p">🌿 Turmeric paste PM</span></div></div>
+    </div></div>
+    <div class="dc"><div class="dch"><span class="dcn re">Saturday</span><span class="dcf re">Rest + Long Draw + Hair Wash</span></div><div class="dcb">
+      <div class="dcs"><div class="dcst s">Timetable</div>
+        <div class="di"><div class="dit">Morning</div><div class="dia">German deep work<span class="tg tb">MIND</span></div></div>
+        <div class="di"><div class="dit">Midday</div><div class="dia">Long drawing 1–2 hrs<span class="tg to">DRAW</span></div></div>
+        <div class="di"><div class="dit">Afternoon</div><div class="dia">Hair wash + mask routine<span class="tg to">PHYS</span></div></div>
+        <div class="di"><div class="dit">Evening</div><div class="dia">Literature + week review<span class="tg tpu">LIT</span></div></div>
+        <div class="di"><div class="dit">Night</div><div class="dia">Anki review</div></div>
+      </div>
+      <div class="dcs"><div class="dcst m">Face Masks</div><div><span class="chip">🍋 De-Tan (2 tbsp besan)</span><span class="chip">🥒 Hydration (2 tbsp aloe)</span></div></div>
+      <div class="dcs"><div class="dcst h">Hair Masks</div><div><span class="chip h">🥥 Wave Def. (2 tbsp coconut)</span><span class="chip h">🌱 Scalp (2 tbsp aloe)</span></div></div>
+      <div class="dcs"><div class="dcst p">PIH</div><div><span class="chip p">🥔 Potato AM</span><span class="chip p">🌿 Turmeric paste PM</span></div></div>
+    </div></div>
+    <div class="dc"><div class="dch"><span class="dcn re">Sunday</span><span class="dcf re">Full Rest + Reset</span></div><div class="dcb">
+      <div class="dcs"><div class="dcst s">Timetable</div>
+        <div class="di"><div class="dit">Morning</div><div class="dia">Rest, slow start, good breakfast</div></div>
+        <div class="di"><div class="dit">Afternoon</div><div class="dia">Literature reading<span class="tg tpu">LIT</span></div></div>
+        <div class="di"><div class="dit">Evening</div><div class="dia">Anki light review</div></div>
+        <div class="di"><div class="dit">Night</div><div class="dia">Notion — plan the whole week ahead</div></div>
+      </div>
+      <div class="dcs"><div class="dcst m">Face Masks</div><div><span class="chip x">Rest — SPF + moisturizer only</span></div></div>
+      <div class="dcs"><div class="dcst h">Hair Masks</div><div><span class="chip x">Rest day</span></div></div>
+      <div class="dcs"><div class="dcst p">PIH</div><div><span class="chip p">🥔 Potato AM only</span></div></div>
+    </div></div>
+  </div>
+  <div class="sdv" id="sd-quick">
+    <div class="card"><div class="ct">Week At A Glance</div>
+      <div class="mwd"><span class="mwdn wo">Mon</span><div class="mwdc"><span class="badge bo">Chest+Tri</span><span class="chip">🍋 De-Tan</span><span class="chip">🌿 Neem</span><span class="chip h">🥥 Wave</span><span class="chip h">🌱 Scalp</span></div></div>
+      <div class="mwd"><span class="mwdn wo">Tue</span><div class="mwdc"><span class="badge bo">Back+Bi</span><span class="chip">🥒 Hydration</span><span class="chip x">Hair rest</span></div></div>
+      <div class="mwd"><span class="mwdn re">Wed</span><div class="mwdc"><span class="badge bx">Rest</span><span class="chip">🍅 Tomato</span><span class="chip h">🫚 Pre-Wash Oil</span></div></div>
+      <div class="mwd"><span class="mwdn wo">Thu</span><div class="mwdc"><span class="badge bo">Shld+Core</span><span class="chip">🍋 De-Tan</span><span class="chip h">🥚 Protein (2×/mo)</span></div></div>
+      <div class="mwd"><span class="mwdn wo">Fri</span><div class="mwdc"><span class="badge bo">Full Upper</span><span class="chip">🍅 Tomato</span><span class="chip x">Hair rest</span></div></div>
+      <div class="mwd"><span class="mwdn re">Sat</span><div class="mwdc"><span class="badge bx">Rest</span><span class="chip">🍋 De-Tan</span><span class="chip">🥒 Hydration</span><span class="chip h">🥥 Wave</span><span class="chip h">🌱 Scalp</span></div></div>
+      <div class="mwd" style="border:none"><span class="mwdn re">Sun</span><div class="mwdc"><span class="badge bx">Full Rest</span><span class="chip x">SPF only</span></div></div>
+    </div>
+    <div class="card"><div class="ct">Every Day — Non-Negotiable</div>
+      <div class="di"><div class="dit">AM</div><div class="dia">🥔 Potato on PIH → Vit C → SPF 50</div></div>
+      <div class="di"><div class="dit">PM</div><div class="dia">🌿 ½tsp turmeric + 1tsp honey paste → Niacinamide → Moisturize</div></div>
+      <div class="di" style="border:none"><div class="dit">Daily</div><div class="dia">🥚 Eggs ✓ · 💧 8 glasses water · 🚫 Reduce Dew</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- MONTH -->
+<div class="page" id="p-month">
+  <div class="ptitle p">Month Plan</div>
+  <div class="psub">4-week skin + hair + body overview</div>
+  <div class="mleg">
+    <div class="mli"><div class="mld" style="background:var(--or2)"></div>Workout</div>
+    <div class="mli"><div class="mld" style="background:var(--go2)"></div>Face Mask</div>
+    <div class="mli"><div class="mld" style="background:var(--bl2)"></div>Hair Mask</div>
+    <div class="mli"><div class="mld" style="background:var(--pu)"></div>PIH</div>
+    <div class="mli"><div class="mld" style="background:var(--gn)"></div>Rest</div>
+  </div>
+  <div class="card"><div class="ct">Week 1 — Foundation</div><div class="mwk">
+    <div class="mwd"><span class="mwdn wo">Mon</span><div class="mwdc"><span class="badge bo">Chest+Tri</span><span class="chip">🍋 De-Tan</span><span class="chip">🌿 Neem</span><span class="chip h">🥥 Wave</span><span class="chip h">🌱 Scalp</span></div></div>
+    <div class="mwd"><span class="mwdn wo">Tue</span><div class="mwdc"><span class="badge bo">Back+Bi</span><span class="chip">🥒 Hydration</span></div></div>
+    <div class="mwd"><span class="mwdn re">Wed</span><div class="mwdc"><span class="badge bx">Rest</span><span class="chip">🍅 Tomato</span><span class="chip h">🫚 Pre-Wash</span></div></div>
+    <div class="mwd"><span class="mwdn wo">Thu</span><div class="mwdc"><span class="badge bo">Shld+Core</span><span class="chip">🍋 De-Tan</span></div></div>
+    <div class="mwd"><span class="mwdn wo">Fri</span><div class="mwdc"><span class="badge bo">Full Upper</span><span class="chip">🍅 Tomato</span></div></div>
+    <div class="mwd"><span class="mwdn re">Sat</span><div class="mwdc"><span class="badge bx">Rest</span><span class="chip">🍋 De-Tan</span><span class="chip">🥒 Hydration</span><span class="chip h">🥥 Wave</span><span class="chip h">🌱 Scalp</span></div></div>
+    <div class="mwd" style="border:none"><span class="mwdn re">Sun</span><div class="mwdc"><span class="badge bx">Full Rest</span><span class="chip x">SPF only</span></div></div>
+  </div></div>
+  <div class="card"><div class="ct">Week 2 — Build</div><div class="mwk">
+    <div class="mwd"><span class="mwdn wo">Mon</span><div class="mwdc"><span class="badge bo">Chest+Tri</span><span class="chip">🍋 De-Tan</span><span class="chip h">🥥 Wave</span><span class="chip h">🌱 Scalp</span></div></div>
+    <div class="mwd"><span class="mwdn wo">Tue</span><div class="mwdc"><span class="badge bo">Back+Bi</span><span class="chip">🥒 Hydration</span></div></div>
+    <div class="mwd"><span class="mwdn re">Wed</span><div class="mwdc"><span class="badge bx">Rest</span><span class="chip">🍅 Tomato</span><span class="chip h">🫚 Pre-Wash</span></div></div>
+    <div class="mwd"><span class="mwdn wo">Thu</span><div class="mwdc"><span class="badge bo">Shld+Core</span><span class="chip">🍋 De-Tan</span><span class="chip">🌿 Neem</span><span class="chip h">🥚 Protein</span></div></div>
+    <div class="mwd"><span class="mwdn wo">Fri</span><div class="mwdc"><span class="badge bo">Full Upper</span><span class="chip">🍅 Tomato</span></div></div>
+    <div class="mwd"><span class="mwdn re">Sat</span><div class="mwdc"><span class="badge bx">Rest</span><span class="chip">🍋 De-Tan</span><span class="chip">🥒 Hydration</span><span class="chip h">🥥 Wave</span><span class="chip h">🌱 Scalp</span></div></div>
+    <div class="mwd" style="border:none"><span class="mwdn re">Sun</span><div class="mwdc"><span class="badge bx">Full Rest</span><span class="chip x">SPF only</span></div></div>
+  </div></div>
+  <div class="card"><div class="ct">Week 3 — Progress Check</div><div class="mwk">
+    <div class="mwd"><span class="mwdn wo">Mon</span><div class="mwdc"><span class="badge bo">Chest+Tri</span><span class="chip">🍋 De-Tan</span><span class="chip h">🥥 Wave</span><span class="chip h">🌱 Scalp</span></div></div>
+    <div class="mwd"><span class="mwdn wo">Tue</span><div class="mwdc"><span class="badge bo">Back+Bi</span><span class="chip">🥒 Hydration</span></div></div>
+    <div class="mwd"><span class="mwdn re">Wed</span><div class="mwdc"><span class="badge bx">Rest</span><span class="chip">🍅 Tomato</span><span class="chip h">🫚 Pre-Wash</span></div></div>
+    <div class="mwd"><span class="mwdn wo">Thu</span><div class="mwdc"><span class="badge bo">Shld+Core</span><span class="chip">🍋 De-Tan</span></div></div>
+    <div class="mwd"><span class="mwdn wo">Fri</span><div class="mwdc"><span class="badge bo">Full Upper</span><span class="chip">🍅 Tomato</span></div></div>
+    <div class="mwd"><span class="mwdn re">Sat</span><div class="mwdc"><span class="badge bx">Rest</span><span class="chip">🍋 De-Tan</span><span class="chip">🥒 Hydration</span><span class="chip h">🥥 Wave</span><span class="chip h">🌱 Scalp</span></div></div>
+    <div class="mwd" style="border:none"><span class="mwdn re">Sun</span><div class="mwdc"><span class="badge bx">Full Rest</span><span class="chip x">SPF only</span></div></div>
+  </div></div>
+  <div class="card"><div class="ct">Week 4 — Lock In</div><div class="mwk">
+    <div class="mwd"><span class="mwdn wo">Mon</span><div class="mwdc"><span class="badge bo">Chest+Tri</span><span class="chip">🍋 De-Tan</span><span class="chip">🌿 Neem</span><span class="chip h">🥥 Wave</span><span class="chip h">🌱 Scalp</span></div></div>
+    <div class="mwd"><span class="mwdn wo">Tue</span><div class="mwdc"><span class="badge bo">Back+Bi</span><span class="chip">🥒 Hydration</span></div></div>
+    <div class="mwd"><span class="mwdn re">Wed</span><div class="mwdc"><span class="badge bx">Rest</span><span class="chip">🍅 Tomato</span><span class="chip h">🫚 Pre-Wash</span></div></div>
+    <div class="mwd"><span class="mwdn wo">Thu</span><div class="mwdc"><span class="badge bo">Shld+Core</span><span class="chip">🍋 De-Tan</span><span class="chip h">🥚 Protein</span></div></div>
+    <div class="mwd"><span class="mwdn wo">Fri</span><div class="mwdc"><span class="badge bo">Full Upper</span><span class="chip">🍅 Tomato</span></div></div>
+    <div class="mwd"><span class="mwdn re">Sat</span><div class="mwdc"><span class="badge bx">Rest</span><span class="chip">🍋 De-Tan</span><span class="chip">🥒 Hydration</span><span class="chip h">🥥 Wave</span><span class="chip h">🌱 Scalp</span></div></div>
+    <div class="mwd" style="border:none"><span class="mwdn re">Sun</span><div class="mwdc"><span class="badge bx">Full Rest</span><span class="chip x">SPF only</span></div></div>
+  </div></div>
+  <div class="card">
+    <div class="ct" style="color:var(--pu)">PIH Progress Checkpoints</div>
+    <div class="tl">
+      <div class="tli"><div class="tld" style="border-color:var(--pu);color:var(--pu);font-size:9px">W1-2</div><div class="tlb"><div class="tlm" style="color:var(--pu)">Weeks 1–2 (Done ✓)</div><ul class="tll"><li>Potato juice + turmeric daily</li><li>Niacinamide PM started</li><li>SPF every morning</li><li>Early lightening visible</li></ul></div></div>
+      <div class="tli"><div class="tld" style="border-color:var(--am);color:var(--am);font-size:9px">NOW</div><div class="tlb"><div class="tlm" style="color:var(--am)">Weeks 3–4 — You Are Here</div><ul class="tll"><li>Noticeable fading expected this week</li><li>Pink reducing to light brown</li><li>Add AHA exfoliant 2×/week if possible</li><li>Take comparison photo end of week</li></ul></div></div>
+      <div class="tli"><div class="tld" style="border-color:var(--gn);color:var(--gn);font-size:9px">M2</div><div class="tlb"><div class="tlm" style="color:var(--gn)">Month 2 🎯</div><ul class="tll"><li>Marks mostly faded</li><li>Skin tone even and clear</li><li>Face score 7.5+ locked in</li></ul></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- NOTES -->
+<div class="page" id="p-notes">
+  <div class="ptitle" style="color:var(--sub)">Notes</div>
+  <div class="psub">Syncs across all your devices ☁️</div>
+  <div class="card" style="margin-bottom:9px"><div class="ct">💪 Physical</div><textarea class="na" id="n1" rows="4" placeholder="Workouts, weight, skin progress..."></textarea><button class="ns" onclick="sv('n1','c1')">Save</button><div class="nc" id="c1">✓ Saved</div></div>
+  <div class="card" style="margin-bottom:9px"><div class="ct">🧠 Mind</div><textarea class="na" id="n2" rows="4" placeholder="German vocab, code notes, book notes..."></textarea><button class="ns" onclick="sv('n2','c2')">Save</button><div class="nc" id="c2">✓ Saved</div></div>
+  <div class="card"><div class="ct">📋 General</div><textarea class="na" id="n3" rows="4" placeholder="Ideas, plans, anything..."></textarea><button class="ns" onclick="sv('n3','c3')">Save</button><div class="nc" id="c3">✓ Saved</div></div>
+</div>
+
+<!-- SKILLS -->
+<div class="page" id="p-skills">
+  <div class="ptitle" style="color:var(--gn)">🌿 Skill Tree</div>
+  <div class="psub">Spend Skill Points to unlock passive powers</div>
+  <div class="skillpts">
+    <div><div class="skillptsval" id="sp-val">0</div><div class="skillptslbl">Skill Points Available</div></div>
+    <div style="font-size:11px;color:var(--sub);text-align:right">+1 point every<br>5 levels</div>
+  </div>
+  <div class="skillgrid" id="skillgrid"></div>
+</div>
+
+<!-- SHADOW ARMY -->
+<div class="page" id="p-army">
+  <div class="ptitle" style="color:var(--pu)">🩸 Shadow Army</div>
+  <div class="psub">Shadows arise from your consistency. Keep the streak.</div>
+  <div class="card">
+    <div class="ct">Shadows Awakened</div>
+    <div class="shadowgrid" id="shadowgrid"></div>
+  </div>
+  <div class="card" style="margin-top:0">
+    <div class="ct">How to Awaken</div>
+    <div style="font-size:11px;color:var(--sub);line-height:1.7">Each shadow is tied to a streak milestone or level threshold. Keep your daily streak alive and rank up to awaken more shadows. They serve no mechanical function — they exist because you earned them.</div>
+  </div>
+</div>
+
+<!-- AI ASSISTANT -->
+<div class="page" id="p-ai">
+  <div class="ptitle p">AI Assistant <span class="featbadge" id="ailvlbadge">LVL 1</span></div>
+  <div class="psub">Ask about your routine, hair, skin, schedule, or anything in Ryan OS</div>
+
+  <div id="ai-locked" class="lockcard" style="display:none">
+    <div class="lockicon">🔒</div>
+    <div class="locktitle">AI Assistant Locked</div>
+    <div class="lockdesc">Complete daily tasks to earn XP and unlock your personal AI assistant. It can see your routines, schedule, and progress to give tailored advice.</div>
+    <div class="lockreq" id="ai-lockreq">Reach Level 2</div>
+  </div>
+
+  <div id="ai-unlocked" style="display:none;height:100%">
+    <div class="aikeybox" id="aikeybox">
+      <strong>Connect your Claude API key</strong> to chat. Get one free at <span style="color:var(--bl2)">console.anthropic.com</span>. Your key is stored only on this device — never synced.
+      <div class="aikeyrow">
+        <input class="aikeyinput" id="aikeyinput" type="password" placeholder="sk-ant-...">
+        <button class="aikeysave" onclick="saveAIKey()">Save</button>
+      </div>
+    </div>
+    <div class="aiwrap" id="aiwrap" style="display:none">
+      <div class="aisuggest">
+        <div class="aisuggestchip" onclick="aiAsk('What should I focus on today based on my routine?')">Today's focus</div>
+        <div class="aisuggestchip" onclick="aiAsk('Give me a quick hair styling tip for 2A thick dry hair.')">Hair tip</div>
+        <div class="aisuggestchip" onclick="aiAsk('How is my PIH progress timeline looking?')">PIH progress</div>
+        <div class="aisuggestchip" onclick="aiAsk('Motivate me to finish my checklist today.')">Motivate me</div>
+      </div>
+      <div class="aimsgs" id="aimsgs">
+        <div class="aimsg sys">✦ Connected. Ask me anything about your Ryan OS routine, hair, skin, German, or schedule.</div>
+      </div>
+      <div class="aiinputrow">
+        <input class="aiinput" id="aiinput" placeholder="Message Ryan OS AI..." onkeydown="if(event.key==='Enter')sendAI()">
+        <button class="aisend" onclick="sendAI()">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+<div class="bnav">
+  <button class="bn on" data-p="home" onclick="go('home')"><div class="bni">⌂</div><div class="bnl">Home</div></button>
+  <button class="bn" data-p="today" onclick="go('today')"><div class="bni">✓</div><div class="bnl">Today</div></button>
+  <button class="bn" data-p="physical" onclick="go('physical')"><div class="bni">💪</div><div class="bnl">Physical</div></button>
+  <button class="bn bl" data-p="mind" onclick="go('mind')"><div class="bni">🧠</div><div class="bnl">Mind</div></button>
+  <button class="bn" data-p="schedule" onclick="go('schedule')"><div class="bni">📅</div><div class="bnl">Schedule</div></button>
+</div>
+</div>
+<script>
+var SB_URL='https://cusgegkgnpylxeowxizv.supabase.co/rest/v1';
+var SB_KEY='sb_publishable__gjufutLJXGrgPshQASwkQ_gVMcwuHB';
+var today=new Date().toDateString();
+
+function sbH(){return{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'resolution=merge-duplicates'}}
+
+async function dbSet(key,val){
+  try{await fetch(SB_URL+'/ryanosdata',{method:'POST',headers:sbH(),body:JSON.stringify({key:key,value:String(val)})})}catch(e){}
+}
+
+async function dbGetAll(){
+  try{var r=await fetch(SB_URL+'/ryanosdata',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});return await r.json()}catch(e){return[]}
+}
+
+function setSS(state,msg){
+  var b=document.getElementById('syncbar');
+  var t=document.getElementById('smsg');
+  b.className=state;t.textContent=msg;
+}
+
+async function initSync(){
+  setSS('syncing','Syncing...');
+  try{
+    var all=await dbGetAll();
+    var map={};
+    (all||[]).forEach(function(r){map[r.key]=r.value});
+    document.querySelectorAll('.ci').forEach(function(el){
+      if(map['ck_'+el.dataset.id+'_'+today]==='1'){
+        el.classList.add('done');el.querySelector('.cick').textContent='✓';
+      }
+    });
+    if(map['streak'])document.getElementById('snum').textContent=map['streak'];
+    if(map['xp']!==undefined){xp=parseInt(map['xp'])||0;localStorage.setItem('xp',xp);}
+    if(map['theme']){localStorage.setItem('theme',map['theme']);}
+    if(map['skills']){localStorage.setItem('skills',map['skills']);unlockedSkills=JSON.parse(map['skills']||'[]');}
+    if(map['sp']!==undefined){skillPoints=parseInt(map['sp'])||0;localStorage.setItem('sp',skillPoints);}
+    ['str','vit','int','per'].forEach(function(s){
+      if(map['stat_'+s]!==undefined){stats[s]=parseInt(map['stat_'+s])||0;localStorage.setItem('stat_'+s,stats[s]);}
+    });
+    ['n1','n2','n3'].forEach(function(id){if(map['note_'+id])document.getElementById(id).value=map['note_'+id];});
+    updateProg();
+    initRewards();
+    setSS('ok','☁️ Synced — all devices');
+  }catch(e){
+    setSS('err','⚠️ Offline mode');
+    loadLocal();
+  }
+}
+
+function loadLocal(){
+  document.querySelectorAll('.ci').forEach(function(el){
+    if(localStorage.getItem('ck_'+el.dataset.id+'_'+today)==='1'){
+      el.classList.add('done');el.querySelector('.cick').textContent='✓';
+    }
+  });
+  if(localStorage.getItem('streak'))document.getElementById('snum').textContent=localStorage.getItem('streak');
+  var sk=localStorage.getItem('skills');if(sk)unlockedSkills=JSON.parse(sk);
+  var sp2=localStorage.getItem('sp');if(sp2)skillPoints=parseInt(sp2)||0;
+  ['n1','n2','n3'].forEach(function(id){var v=localStorage.getItem('note_'+id);if(v)document.getElementById(id).value=v;});
+  updateProg();
+  initRewards();
+}
+
+var now=new Date();
+var days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+document.getElementById('tdate').textContent=days[now.getDay()]+', '+months[now.getMonth()]+' '+now.getDate();
+var h=now.getHours();
+var _gr=document.getElementById('greet');if(_gr)_gr.textContent=(h<12?'Good morning':h<17?'Good afternoon':'Good evening')+', Ryan';
+document.getElementById('snum').textContent=localStorage.getItem('streak')||'0';
+function go(id){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('on')});
+  document.querySelectorAll('.tab,.bn').forEach(function(t){t.classList.remove('on')});
+  document.getElementById('p-'+id).classList.add('on');
+  document.querySelectorAll('[data-p="'+id+'"]').forEach(function(e){e.classList.add('on')});
+}
+document.querySelectorAll('.tab').forEach(function(t){t.addEventListener('click',function(){go(this.dataset.p)})});
+function sub(btn,col){
+  var sv=btn.dataset.sv;
+  var pg=document.getElementById('p-'+col);
+  pg.querySelectorAll('.stab').forEach(function(t){t.classList.remove('on')});
+  pg.querySelectorAll('.sv').forEach(function(v){v.classList.remove('on')});
+  btn.classList.add('on');
+  document.getElementById('sv-'+sv).classList.add('on');
+}
+function sched(btn,id){
+  document.querySelectorAll('.sb').forEach(function(b){b.classList.remove('on')});
+  document.getElementById('sd-detail').classList.remove('on');
+  document.getElementById('sd-quick').classList.remove('on');
+  btn.classList.add('on');
+  document.getElementById('sd-'+id).classList.add('on');
+}
+var today=new Date().toDateString();
+var XP_PER_TASK=10;
+function tick(el){
+  var done=el.classList.toggle('done');
+  el.querySelector('.cick').textContent=done?'✓':'';
+  var key='ck_'+el.dataset.id+'_'+today;
+  localStorage.setItem(key,done?'1':'0');
+  dbSet(key,done?'1':'0');
+  setSS('syncing','Saving...');
+  setTimeout(function(){setSS('ok','☁️ Synced')},900);
+  awardXP(done?XP_PER_TASK:-XP_PER_TASK,el);
+  updateProg();updateStreak();
+}
+
+function resetDay(){
+  if(!confirm('Reset today?'))return;
+  document.querySelectorAll('.ci').forEach(function(el){
+    localStorage.removeItem('ck_'+el.dataset.id+'_'+today);
+    el.classList.remove('done');el.querySelector('.cick').textContent='';
+  });updateProg();
+}
+function pct(arr){
+  if(!arr.length)return 0;
+  var d=0;for(var i=0;i<arr.length;i++)if(arr[i].classList.contains('done'))d++;
+  return Math.round(d/arr.length*100);
+}
+function updateProg(){
+  var all=document.querySelectorAll('.ci');
+  var ph=[],mn=[],sk=[];
+  all.forEach(function(i){
+    if(i.dataset.cat==='p')ph.push(i);
+    else if(i.dataset.cat==='m')mn.push(i);
+    else if(i.dataset.cat==='s')sk.push(i);
+  });
+  var pp=pct(ph),mp=pct(mn),sp=pct(sk),op=pct(Array.from(all));
+  var _pb1=document.getElementById('pb1');if(_pb1)_pb1.style.width=pp+'%';
+  var _ppc=document.getElementById('ppc');if(_ppc)_ppc.textContent=pp+'%';
+  var _pb2=document.getElementById('pb2');if(_pb2)_pb2.style.width=mp+'%';
+  var _mpc=document.getElementById('mpc');if(_mpc)_mpc.textContent=mp+'%';
+  var _pb3=document.getElementById('pb3');if(_pb3)_pb3.style.width=sp+'%';
+  var _spc=document.getElementById('spc');if(_spc)_spc.textContent=sp+'%';
+  var _op=document.getElementById('opct');if(_op)_op.textContent=op+'%';
+}
+function updateStreak(){
+  var all=Array.from(document.querySelectorAll('.ci'));
+  var done=all.filter(function(i){return i.classList.contains('done')}).length;
+  if(done===all.length){
+    if(localStorage.getItem('ls')!==today){
+      var s=parseInt(localStorage.getItem('streak')||'0')+1;
+      localStorage.setItem('streak',s);localStorage.setItem('ls',today);
+      dbSet('streak',s);dbSet('lastday',today);
+      document.getElementById('snum').textContent=s;
+    }
+  }
+}
+function sv(id,cid){
+  var val=document.getElementById(id).value;
+  localStorage.setItem('note_'+id,val);
+  dbSet('note_'+id,val);
+  setSS('syncing','Saving...');
+  setTimeout(function(){setSS('ok','☁️ Synced')},900);
+  var c=document.getElementById(cid);c.classList.add('on');
+  setTimeout(function(){c.classList.remove('on')},2000);
+}
+
+/* ===========================
+   RYAN OS v11 — SYSTEM CORE
+   =========================== */
+
+var today = new Date().toDateString();
+var XP_PER_TASK = 10;
+
+/* ---- THEMES (full variable swap) ---- */
+var THEMES = [
+  {id:'crimson', name:'Crimson', req:1,
+   vars:{'--bg':'#0a0708','--s1':'#150f12','--s2':'#1f1518','--bd':'#332026','--tx':'#f1e8ea','--sub':'#9c8089','--mu':'#5c4750','--or':'#9b1c2e','--or2':'#e63950','--orb':'rgba(230,57,80,.1)','--bl':'#5a4a6a','--bl2':'#b9a8d4','--blb':'rgba(185,168,212,.1)','--go':'#8a6d3b','--go2':'#d4af6a','--gob':'rgba(212,175,106,.1)','--gn':'#5fa97a','--rd':'#e63950','--am':'#d4af6a','--pu':'#9966cc'},
+   swatch:'linear-gradient(135deg,#e63950,#9b1c2e)'},
+  {id:'moonlight', name:'Moonlight', req:2,
+   vars:{'--bg':'#08080f','--s1':'#0f0f1a','--s2':'#16162a','--bd':'#252540','--tx':'#e8e8f5','--sub':'#7878aa','--mu':'#404060','--or':'#4a5280','--or2':'#c5d0e0','--orb':'rgba(197,208,224,.1)','--bl':'#4455aa','--bl2':'#aabcff','--blb':'rgba(170,188,255,.1)','--go':'#6a7a90','--go2':'#c0d0e8','--gob':'rgba(192,208,232,.1)','--gn':'#6699bb','--rd':'#cc6688','--am':'#aabbcc','--pu':'#8899dd'},
+   swatch:'linear-gradient(135deg,#c5d0e0,#5a6478)'},
+  {id:'obsidian', name:'Obsidian', req:4,
+   vars:{'--bg':'#080810','--s1':'#10101e','--s2':'#18182c','--bd':'#28285a','--tx':'#ede8ff','--sub':'#8878bb','--mu':'#484870','--or':'#5b21b6','--or2':'#a78bfa','--orb':'rgba(167,139,250,.1)','--bl':'#3b5eb6','--bl2':'#89b4ff','--blb':'rgba(137,180,255,.1)','--go':'#6b5baa','--go2':'#c4aaff','--gob':'rgba(196,170,255,.1)','--gn':'#7766dd','--rd':'#ee66aa','--am':'#bb99ff','--pu':'#cc88ff'},
+   swatch:'linear-gradient(135deg,#a78bfa,#5b21b6)'},
+  {id:'bloodmoon', name:'Bloodmoon', req:6,
+   vars:{'--bg':'#090604','--s1':'#120e08','--s2':'#1c1610','--bd':'#382a16','--tx':'#f5e8d0','--sub':'#a08060','--mu':'#604830','--or':'#8a4a10','--or2':'#d4af6a','--orb':'rgba(212,175,106,.1)','--bl':'#806040','--bl2':'#e0c080','--blb':'rgba(224,192,128,.1)','--go':'#aa7a30','--go2':'#f0d080','--gob':'rgba(240,208,128,.1)','--gn':'#806020','--rd':'#cc4422','--am':'#e0a040','--pu':'#cc8844'},
+   swatch:'linear-gradient(135deg,#d4af6a,#8a6d3b)'},
+  {id:'ashen', name:'Ashen', req:9,
+   vars:{'--bg':'#070a08','--s1':'#0e1410','--s2':'#151e18','--bd':'#233028','--tx':'#dff0e4','--sub':'#6a9078','--mu':'#3a5040','--or':'#2a5a3a','--or2':'#5fa97a','--orb':'rgba(95,169,122,.1)','--bl':'#3a6a5a','--bl2':'#88ddaa','--blb':'rgba(136,221,170,.1)','--go':'#4a8a5a','--go2':'#88cc88','--gob':'rgba(136,204,136,.1)','--gn':'#66bb77','--rd':'#cc5544','--am':'#88cc66','--pu':'#77bbaa'},
+   swatch:'linear-gradient(135deg,#5fa97a,#2f6b4f)'}
+];
+
+function applyTheme(id, save) {
+  var th = THEMES.find(function(t){return t.id===id});
+  if (!th) return;
+  var r = document.documentElement.style;
+  Object.keys(th.vars).forEach(function(k){ r.setProperty(k, th.vars[k]); });
+  localStorage.setItem('theme', id);
+  if (save) { dbSet('theme', id); setSS('syncing','Saving...'); setTimeout(function(){setSS('ok','☁️ Synced')},900); }
+  renderThemes();
+}
+
+function renderThemes() {
+  var lvl = getLevel(xp);
+  var active = localStorage.getItem('theme') || 'crimson';
+  var wrap = document.getElementById('themepick');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  THEMES.forEach(function(th) {
+    var locked = lvl < th.req;
+    var div = document.createElement('div');
+    div.className = 'themeitem' + (th.id===active?' active':'') + (locked?' locked':'');
+    div.innerHTML = '<div class="themeswatch" style="background:'+th.swatch+'"></div>' +
+      '<div class="themename">'+th.name+'</div>' +
+      (locked ? '<div class="themereq">Lv '+th.req+'</div><div class="themelockicon">🔒</div>' :
+                '<div class="themereq">'+(th.id===active?'Active':'Tap')+'</div>');
+    if (!locked) div.onclick = function(){ applyTheme(th.id, true); };
+    wrap.appendChild(div);
+  });
+}
+
+/* ---- XP & LEVELS ---- */
+var xp = parseInt(localStorage.getItem('xp')||'0');
+var LEVEL_NAMES = ['Fledgling','Initiate','Nightwalker','Bloodbound','Shade','Nocturne','Revenant','Ancient','Immortal','Apex Predator'];
+
+function xpForLevel(lvl) {
+  if (lvl <= 1) return 0;
+  return Math.round(100 * Math.pow(lvl-1, 1.55));
+}
+function getLevel(x) {
+  var lvl = 1;
+  while (x >= xpForLevel(lvl+1)) lvl++;
+  return lvl;
+}
+function levelName(lvl) {
+  return LEVEL_NAMES[Math.min(lvl, LEVEL_NAMES.length)-1] || 'Eternal';
+}
+
+function renderXP() {
+  var lvl = getLevel(xp);
+  var cur = xpForLevel(lvl), next = xpForLevel(lvl+1);
+  var pct = next > cur ? Math.round((xp-cur)/(next-cur)*100) : 100;
+  var el;
+  el = document.getElementById('xpbadge'); if(el) el.textContent = lvl;
+  el = document.getElementById('xptitle'); if(el) el.textContent = 'Level '+lvl+' · '+levelName(lvl);
+  el = document.getElementById('xpval');   if(el) el.textContent = xp+' XP';
+  el = document.getElementById('xpneed'); if(el) el.textContent = (next-xp)+' to next';
+  el = document.getElementById('xpfill'); if(el) el.style.width = pct+'%';
+}
+
+function popXP(el, amount) {
+  if (!el) return;
+  var r = el.getBoundingClientRect();
+  var p = document.createElement('div');
+  p.className = 'xppop';
+  p.textContent = (amount>0?'+':'')+amount+' XP';
+  p.style.left = (r.right - 50)+'px';
+  p.style.top  = (r.top + 8)+'px';
+  document.body.appendChild(p);
+  setTimeout(function(){ p.remove(); }, 1000);
+}
+
+function showLevelToast(lvl) {
+  var t = document.getElementById('lvltoast');
+  if (!t) return;
+  t.textContent = '⬆ LEVEL '+lvl+' — '+levelName(lvl).toUpperCase();
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2600);
+}
+
+function awardXP(delta, el) {
+  var oldLvl = getLevel(xp);
+  xp = Math.max(0, xp + delta);
+  localStorage.setItem('xp', xp);
+  dbSet('xp', xp);
+  var newLvl = getLevel(xp);
+  renderXP();
+  renderRank();
+  renderThemes();
+  renderAIGate();
+  renderSkills();
+  renderArmy();
+  if (delta > 0) popXP(el, delta);
+  if (newLvl > oldLvl) {
+    showLevelToast(newLvl);
+    sysMsg('[System] Level Up! You are now Level '+newLvl+' — '+levelName(newLvl), 'default');
+    checkSkillPoints(newLvl);
+  }
+}
+
+/* ---- RANKS ---- */
+var RANKS = [
+  {letter:'E', title:'Common Hunter',    minLvl:1,  maxLvl:9},
+  {letter:'D', title:'Shadow Scout',     minLvl:10, maxLvl:19},
+  {letter:'C', title:'Night Stalker',    minLvl:20, maxLvl:34},
+  {letter:'B', title:'Blood Knight',     minLvl:35, maxLvl:49},
+  {letter:'A', title:'Shadow Sovereign', minLvl:50, maxLvl:74},
+  {letter:'S', title:'Apex Immortal',    minLvl:75, maxLvl:Infinity}
+];
+
+function getRank(lvl) {
+  return RANKS.find(function(r){ return lvl >= r.minLvl && lvl <= r.maxLvl; }) || RANKS[0];
+}
+
+function renderRank() {
+  var lvl = getLevel(xp);
+  var rank = getRank(lvl);
+  var next = RANKS.find(function(r){ return r.minLvl > lvl; });
+  // update any rank letter elements that exist
+  ['rankletter','hid-rank'].forEach(function(id){
+    var el = document.getElementById(id); if(el) el.textContent = rank.letter;
+  });
+  var el;
+  el = document.getElementById('ranktitle');  if(el) el.textContent = rank.title;
+  el = document.getElementById('ranknext');   if(el) el.textContent = next ? 'Reach Level '+next.minLvl+' for Rank '+next.letter : '★ Max Rank Achieved';
+}
+
+/* ---- STATS ---- */
+var stats = {str:0, vit:0, int:0, per:0};
+
+function loadStats() {
+  ['str','vit','int','per'].forEach(function(s){
+    stats[s] = parseInt(localStorage.getItem('stat_'+s)||'0');
+  });
+}
+
+function saveStats() {
+  ['str','vit','int','per'].forEach(function(s){
+    localStorage.setItem('stat_'+s, stats[s]);
+    dbSet('stat_'+s, stats[s]);
+  });
+}
+
+function renderStats() {
+  var MAX_STAT = 100;
+  ['str','vit','int','per'].forEach(function(s){
+    var val = stats[s];
+    var el = document.getElementById('stat-'+s);
+    var bar = document.getElementById('bar-'+s);
+    if (el) el.textContent = val;
+    if (bar) bar.style.width = Math.min(val/MAX_STAT*100, 100)+'%';
+  });
+}
+
+function awardStat(statKey, delta) {
+  if (!stats.hasOwnProperty(statKey)) return;
+  stats[statKey] = Math.max(0, stats[statKey] + delta);
+  saveStats();
+  renderStats();
+}
+
+/* ---- SYSTEM MESSAGES ---- */
+var sysQueue = [];
+var sysShowing = false;
+
+function sysMsg(text, type) {
+  sysQueue.push({text:text, type:type||'default'});
+  if (!sysShowing) drainSys();
+}
+
+function drainSys() {
+  if (!sysQueue.length) { sysShowing=false; return; }
+  sysShowing = true;
+  var item = sysQueue.shift();
+  var stack = document.getElementById('systack');
+  if (!stack) { sysShowing=false; return; }
+  var d = document.createElement('div');
+  d.className = 'systoast' + (item.type==='rankup'?' rankup':item.type==='quest'?' quest':'');
+  d.innerHTML = '<span class="sys-tag">[System]</span>' + item.text.replace('[System]','').trim();
+  stack.appendChild(d);
+  requestAnimationFrame(function(){ d.classList.add('show'); });
+  setTimeout(function(){
+    d.classList.remove('show');
+    setTimeout(function(){ d.remove(); drainSys(); }, 500);
+  }, 2800);
+}
+
+/* ---- SKILL TREE ---- */
+var SKILLS = [
+  {id:'double_sun',   name:'Solar Blessing',    icon:'☀️', desc:'+20 bonus XP each time you complete all Skin tasks in a day.', req:5,  cost:1, stat:null},
+  {id:'iron_will',    name:'Iron Will',          icon:'⚔️', desc:'Streak days also add +1 STR (on top of normal PER gain).', req:8,  cost:1, stat:'str'},
+  {id:'night_eye',    name:'Night Eye',          icon:'👁', desc:'Unlocks the Eye Tracker section in your Physical tab.', req:12, cost:2, stat:null},
+  {id:'blood_memory', name:'Blood Memory',       icon:'🩸', desc:'Notes auto-save on every keystroke — no more tapping Save.', req:15, cost:2, stat:null},
+  {id:'mist_form',    name:'Mist Form',          icon:'🌫', desc:'Completing any 3 tasks in a session gives +5 bonus XP each.', req:20, cost:3, stat:null},
+  {id:'ancient_tome', name:'Ancient Tome',       icon:'📜', desc:'+2 INT per German/Anki task instead of 1 (language mastery bonus).', req:25, cost:3, stat:'int'},
+  {id:'shadow_sync',  name:'Shadow Sync',        icon:'🌑', desc:'Your Shadow Army page shows detailed awakening lore for each shadow.', req:30, cost:2, stat:null},
+  {id:'apex_form',    name:'Apex Form',          icon:'💀', desc:'Unlocks an exclusive Apex theme (deep black/crimson) at any level.', req:40, cost:4, stat:null}
+];
+
+var unlockedSkills = JSON.parse(localStorage.getItem('skills')||'[]');
+var skillPoints = parseInt(localStorage.getItem('sp')||'0');
+
+function checkSkillPoints(newLvl) {
+  if (newLvl % 5 === 0) {
+    skillPoints++;
+    localStorage.setItem('sp', skillPoints);
+    dbSet('sp', skillPoints);
+    renderSkills();
+    sysMsg('[System] Skill Point gained! Total: '+skillPoints, 'quest');
+  }
+}
+
+function unlockSkill(id) {
+  var sk = SKILLS.find(function(s){ return s.id===id; });
+  if (!sk || unlockedSkills.indexOf(id) > -1) return;
+  var lvl = getLevel(xp);
+  if (lvl < sk.req) { sysMsg('[System] Requires Level '+sk.req, 'default'); return; }
+  if (skillPoints < sk.cost) { sysMsg('[System] Not enough skill points', 'default'); return; }
+  skillPoints -= sk.cost;
+  unlockedSkills.push(id);
+  localStorage.setItem('skills', JSON.stringify(unlockedSkills));
+  localStorage.setItem('sp', skillPoints);
+  dbSet('skills', JSON.stringify(unlockedSkills));
+  dbSet('sp', skillPoints);
+  renderSkills();
+  sysMsg('[System] Skill unlocked: '+sk.name, 'quest');
+}
+
+function hasSkill(id) {
+  return unlockedSkills.indexOf(id) > -1;
+}
+
+function renderSkills() {
+  var lvl = getLevel(xp);
+  var spEl = document.getElementById('sp-val');
+  if (spEl) spEl.textContent = skillPoints;
+  var grid = document.getElementById('skillgrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  SKILLS.forEach(function(sk) {
+    var owned = unlockedSkills.indexOf(sk.id) > -1;
+    var canAfford = skillPoints >= sk.cost;
+    var meetsLvl = lvl >= sk.req;
+    var locked = !meetsLvl;
+    var node = document.createElement('div');
+    node.className = 'skillnode' + (owned?' unlocked':locked?' locked':'');
+    var btnHtml = owned
+      ? '<button class="skillbtn done">✓ Active</button>'
+      : (locked
+         ? '<button class="skillbtn">Lv '+sk.req+'</button>'
+         : '<button class="skillbtn go" onclick="unlockSkill(\''+sk.id+'\')">'+sk.cost+' SP</button>');
+    node.innerHTML = '<div class="skillicon">'+sk.icon+'</div>' +
+      '<div class="skillbody"><div class="skillname">'+sk.name+'</div>' +
+      '<div class="skilldesc">'+sk.desc+'</div>' +
+      '<div class="skillreq">Requires Level '+sk.req+'</div></div>' + btnHtml;
+    grid.appendChild(node);
+  });
+}
+
+/* ---- SHADOW ARMY ---- */
+var SHADOWS = [
+  {name:'Igris',    icon:'🗡', title:'First Shadow',        cond:function(l,s){ return s>=3; },  hint:'3-day streak'},
+  {name:'Beru',     icon:'🐉', title:'The Beast',           cond:function(l,s){ return l>=5; },  hint:'Reach Level 5'},
+  {name:'Kaisel',   icon:'🦅', title:'Shadow Dragon',       cond:function(l,s){ return s>=7; },  hint:'7-day streak'},
+  {name:'Tusk',     icon:'⚡', title:'The Iron',            cond:function(l,s){ return l>=10; }, hint:'Reach Level 10'},
+  {name:'Greed',    icon:'💎', title:'The Collector',       cond:function(l,s){ return s>=14; }, hint:'14-day streak'},
+  {name:'Iron',     icon:'🛡', title:'The Unyielding',      cond:function(l,s){ return l>=20; }, hint:'Reach Level 20'},
+  {name:'Fangs',    icon:'🩸', title:'Blood Drinker',       cond:function(l,s){ return s>=21; }, hint:'21-day streak'},
+  {name:'Goto',     icon:'🌑', title:'Shadow of Shadows',   cond:function(l,s){ return l>=35; }, hint:'Reach Level 35'},
+  {name:'The King', icon:'👑', title:'Arise',               cond:function(l,s){ return l>=50; }, hint:'Reach Level 50'}
+];
+
+function renderArmy() {
+  var grid = document.getElementById('shadowgrid');
+  if (!grid) return;
+  var lvl = getLevel(xp);
+  var streak = parseInt(document.getElementById('snum').textContent||'0');
+  grid.innerHTML = '';
+  SHADOWS.forEach(function(sh) {
+    var awakened = sh.cond(lvl, streak);
+    var div = document.createElement('div');
+    div.className = 'shadowcard' + (awakened?'':' locked');
+    div.innerHTML = '<div class="shadowicon">'+(awakened?sh.icon:'⬛')+'</div>' +
+      '<div class="shadowname">'+(awakened?sh.name:'???')+'</div>' +
+      '<div class="shadowtitle">'+(awakened?sh.title:sh.hint)+'</div>';
+    grid.appendChild(div);
+  });
+}
+
+/* ---- QUEST PANEL ---- */
+function updateQuest() {
+  var items = document.querySelectorAll('.ci');
+  var total = items.length;
+  var done = document.querySelectorAll('.ci.done').length;
+  var pct = total ? Math.round(done/total*100) : 0;
+  var el;
+  el = document.getElementById('q-done'); if(el) el.textContent = done;
+  el = document.getElementById('q-total'); if(el) el.textContent = total;
+  el = document.getElementById('q-bar'); if(el) el.style.width = pct+'%';
+  var sub = document.getElementById('q-sub');
+  var bonus = document.getElementById('q-bonus');
+  if (sub && bonus) {
+    if (done === total && total > 0) {
+      sub.childNodes[0].textContent = '🔥 Full Clear! Bonus XP awarded for today. ';
+      bonus.style.display = 'inline';
+    } else if (done === 0) {
+      sub.childNodes[0].textContent = 'Complete tasks to earn XP and stat points. Every task counts. ';
+      bonus.style.display = 'none';
+    } else {
+      sub.childNodes[0].textContent = pct+'% complete — '+( total-done)+' tasks remaining. ';
+      bonus.style.display = 'none';
+    }
+  }
+}
+
+/* ---- TICK (core task toggle) ---- */
+function tick(el) {
+  var done = el.classList.toggle('done');
+  el.querySelector('.cick').textContent = done ? '✓' : '';
+  var key = 'ck_'+el.dataset.id+'_'+today;
+  localStorage.setItem(key, done?'1':'0');
+  dbSet(key, done?'1':'0');
+  setSS('syncing','Saving...');
+  setTimeout(function(){ setSS('ok','☁️ Synced'); }, 900);
+
+  var statKey = el.dataset.stat;
+  var xpDelta = done ? XP_PER_TASK : -XP_PER_TASK;
+  if (statKey) awardStat(statKey, done ? 1 : -1);
+
+  /* Solar Blessing skill bonus */
+  if (done && hasSkill('double_sun') && statKey==='vit') {
+    var allVit = document.querySelectorAll('.ci[data-stat="vit"]');
+    var allDone = Array.prototype.every.call(allVit, function(e){ return e.classList.contains('done'); });
+    if (allDone) { xpDelta += 20; sysMsg('[System] Solar Blessing activated! +20 Bonus XP', 'quest'); }
+  }
+  /* Mist Form skill bonus */
+  if (done && hasSkill('mist_form')) {
+    var session = parseInt(sessionStorage.getItem('session_ticks')||'0') + 1;
+    sessionStorage.setItem('session_ticks', session);
+    if (session > 0 && session % 3 === 0) { xpDelta += 5; sysMsg('[System] Mist Form! +5 Bonus XP', 'quest'); }
+  }
+  /* Ancient Tome: double INT for German/Anki */
+  if (done && hasSkill('ancient_tome') && (el.dataset.id==='german'||el.dataset.id==='anki')) {
+    awardStat('int', 1); /* extra +1 on top of the regular one above */
+    sysMsg('[System] Ancient Tome: +2 INT earned', 'quest');
+  }
+
+  awardXP(xpDelta, el);
+  if (done) addKill(1);
+
+  /* Check full clear bonus (one-time per day) */
+  var cleared = document.querySelectorAll('.ci').length === document.querySelectorAll('.ci.done').length;
+  var clearKey = 'fullclear_'+today;
+  if (cleared && !localStorage.getItem(clearKey)) {
+    localStorage.setItem(clearKey, '1');
+    awardXP(50, el);
+    sysMsg('[System] FULL CLEAR! +50 Bonus XP awarded', 'rankup');
+  }
+
+  updateProg(); updateStreak(); updateQuest();
+}
+
+/* ---- BLOOD MEMORY skill: auto-save notes ---- */
+function autoSaveNote(id, confId) {
+  if (!hasSkill('blood_memory')) return;
+  clearTimeout(window['_ns_'+id]);
+  window['_ns_'+id] = setTimeout(function(){ sv(id, confId); }, 800);
+}
+
+/* ---- AI GATE ---- */
+var AI_REQ_LEVEL = 2;
+function renderAIGate() {
+  var lvl = getLevel(xp);
+  var badge = document.getElementById('ailvlbadge');
+  if (badge) badge.textContent = 'LVL '+lvl;
+  var locked = lvl < AI_REQ_LEVEL;
+  var lk = document.getElementById('ai-locked');
+  var ul = document.getElementById('ai-unlocked');
+  if (lk) lk.style.display = locked?'block':'none';
+  if (ul) ul.style.display = locked?'none':'block';
+  if (!locked) {
+    var key = localStorage.getItem('claude_key');
+    var kb = document.getElementById('aikeybox');
+    var aw = document.getElementById('aiwrap');
+    if (kb) kb.style.display = key?'none':'block';
+    if (aw) aw.style.display = key?'flex':'none';
+  }
+}
+
+function saveAIKey() {
+  var v = document.getElementById('aikeyinput').value.trim();
+  if (!v) return;
+  localStorage.setItem('claude_key', v);
+  document.getElementById('aikeybox').style.display = 'none';
+  document.getElementById('aiwrap').style.display = 'flex';
+  document.getElementById('aiinput').focus();
+}
+
+function addAIMsg(role, text) {
+  var box = document.getElementById('aimsgs');
+  var d = document.createElement('div');
+  d.className = 'aimsg '+role;
+  d.textContent = text;
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+  return d;
+}
+
+function buildSystemPrompt() {
+  var lvl = getLevel(xp);
+  var rank = getRank(lvl);
+  var streak = document.getElementById('snum').textContent;
+  return 'You are the in-app AI assistant for "Ryan OS", a Solo Leveling-inspired personal growth PWA built by a 16-year-old named Ryan in Pakistan. ' +
+    'Ryan is Rank '+rank.letter+' ('+rank.title+'), Level '+lvl+', '+xp+' XP, '+streak+'-day streak. ' +
+    'Stats: STR '+stats.str+' VIT '+stats.vit+' INT '+stats.int+' PER '+stats.per+'. ' +
+    'Ryan tracks: Physical tasks (workout, mass shake, eggs, hair), Skin (SPF, mask, PIH potato juice, water, no Mountain Dew), Mind (German, Anki, coding, drawing, literature). ' +
+    'Ryan is 16, 5\'10", 55kg, bulking with home bodyweight training, going for a vampire aesthetic (pale skin, sharp brows, all-black wardrobe, intense eye contact). ' +
+    'PIH fading on right cheek (week 3-4). Hair: 2A thick dry low-porosity, Damon cut done. Goal: Pakistan → Germany. ' +
+    'Keep replies short (2-5 sentences), direct, and realistic for a still-growing 16-year-old.';
+}
+
+var aiHistory = [];
+async function callClaude(userText) {
+  var key = localStorage.getItem('claude_key');
+  aiHistory.push({role:'user', content:userText});
+  var res = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:600,system:buildSystemPrompt(),messages:aiHistory})
+  });
+  var data = await res.json();
+  if (data.error) throw new Error(data.error.message||'API error');
+  var text = (data.content||[]).map(function(b){return b.text||'';}).join('');
+  aiHistory.push({role:'assistant', content:text});
+  return text;
+}
+
+async function sendAI() {
+  var input = document.getElementById('aiinput');
+  var text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  addAIMsg('user', text);
+  var typing = addAIMsg('bot','');
+  typing.innerHTML = '<span class="aitypingdot"></span><span class="aitypingdot"></span><span class="aitypingdot"></span>';
+  try {
+    var reply = await callClaude(text);
+    typing.textContent = reply;
+  } catch(e) {
+    typing.className = 'aimsg sys';
+    typing.textContent = '⚠️ '+e.message+'. Check your API key or connection.';
+  }
+  document.getElementById('aimsgs').scrollTop = document.getElementById('aimsgs').scrollHeight;
+}
+
+function aiAsk(text) {
+  document.getElementById('aiinput').value = text;
+  sendAI();
+}
+
+/* ---- INIT REWARDS ---- */
+function initRewards() {
+  loadStats();
+  renderXP();
+  renderRank();
+  renderStats();
+  applyTheme(localStorage.getItem('theme')||'crimson', false);
+  renderThemes();
+  renderSkills();
+  renderArmy();
+  renderAIGate();
+  updateQuest();
+  initHome();
+  sysMsg('[System] Ryan OS v12 online. Welcome back, Hunter.', 'default');
+}
+
+/* ===========================
+   APP LOCK SYSTEM
+   =========================== */
+
+var LOCK_TIMEOUT = 10 * 60 * 1000; // 10 minutes inactivity
+var _lockTimer = null;
+var _setupPin = '';
+var _lockInput = '';
+
+function hashPin(pin) {
+  // simple djb2-style hash — not crypto but good enough for local PIN
+  var h = 5381;
+  for (var i = 0; i < pin.length; i++) h = ((h << 5) + h) ^ pin.charCodeAt(i);
+  return (h >>> 0).toString(36);
+}
+
+function genBackupCode() {
+  var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var a = '', b = '';
+  for (var i=0;i<4;i++) a += chars[Math.floor(Math.random()*chars.length)];
+  for (var i=0;i<4;i++) b += chars[Math.floor(Math.random()*chars.length)];
+  return a + '-' + b;
+}
+
+function isLockSetup() {
+  return !!localStorage.getItem('lock_hash');
+}
+
+/* ---- SETUP FLOW ---- */
+function startSetup() {
+  document.getElementById('setupscreen').classList.remove('hidden');
+}
+
+function setupKey(k) {
+  if (_setupPin.length >= 4) return;
+  _setupPin += k;
+  updateDots('setup-dots', _setupPin.length);
+  if (_setupPin.length === 4) {
+    setTimeout(function() {
+      document.getElementById('step-pin').classList.add('hidden');
+      document.getElementById('step-confirm').classList.remove('hidden');
+    }, 180);
+  }
+}
+function setupDel() {
+  _setupPin = _setupPin.slice(0,-1);
+  updateDots('setup-dots', _setupPin.length);
+}
+
+var _confirmPin = '';
+function confirmKey(k) {
+  if (_confirmPin.length >= 4) return;
+  _confirmPin += k;
+  updateDots('confirm-dots', _confirmPin.length);
+  if (_confirmPin.length === 4) {
+    setTimeout(function() {
+      if (_confirmPin === _setupPin) {
+        // show backup code screen
+        var code = genBackupCode();
+        localStorage.setItem('lock_hash', hashPin(_setupPin));
+        localStorage.setItem('lock_backup', hashPin(code.replace('-','')));
+        document.getElementById('backup-code-display').textContent = code;
+        document.getElementById('step-confirm').classList.add('hidden');
+        document.getElementById('step-code').classList.remove('hidden');
+        _setupPin = ''; _confirmPin = '';
+      } else {
+        flashErr('confirm-err', 'PINs don\'t match — try again');
+        _confirmPin = '';
+        updateDots('confirm-dots', 0);
+        flashDots('confirm-dots');
+      }
+    }, 180);
+  }
+}
+function confirmDel() {
+  _confirmPin = _confirmPin.slice(0,-1);
+  updateDots('confirm-dots', _confirmPin.length);
+}
+
+function finishSetup() {
+  document.getElementById('setupscreen').classList.add('hidden');
+  localStorage.setItem('lock_ts', Date.now());
+  startInactivityTimer();
+}
+
+/* ---- LOCK SCREEN ---- */
+function showLock() {
+  _lockInput = '';
+  updateDots('lock-dots', 0);
+  clearErr('lock-err');
+  document.getElementById('lockscreen').classList.remove('hidden');
+}
+function hideLock() {
+  document.getElementById('lockscreen').classList.add('hidden');
+  localStorage.setItem('lock_ts', Date.now());
+  startInactivityTimer();
+}
+
+function lockKey(k) {
+  if (_lockInput.length >= 4) return;
+  _lockInput += k;
+  updateDots('lock-dots', _lockInput.length);
+  if (_lockInput.length === 4) {
+    setTimeout(function() {
+      if (hashPin(_lockInput) === localStorage.getItem('lock_hash')) {
+        hideLock();
+        _lockInput = '';
+      } else {
+        flashErr('lock-err', 'Wrong PIN');
+        flashDots('lock-dots');
+        _lockInput = '';
+        updateDots('lock-dots', 0, true);
+        setTimeout(function(){ updateDots('lock-dots',0); clearErr('lock-err'); }, 700);
+      }
+    }, 180);
+  }
+}
+function lockDel() {
+  _lockInput = _lockInput.slice(0,-1);
+  updateDots('lock-dots', _lockInput.length);
+}
+
+/* ---- RECOVERY ---- */
+function showRecovery() {
+  document.getElementById('recovscreen').classList.remove('hidden');
+  document.getElementById('recov-input').value = '';
+  clearErr('recov-err');
+}
+function hideRecovery() {
+  document.getElementById('recovscreen').classList.add('hidden');
+}
+function tryRecovery() {
+  var val = document.getElementById('recov-input').value.trim().toUpperCase().replace('-','');
+  if (hashPin(val) === localStorage.getItem('lock_backup')) {
+    // valid — clear pin and re-run setup
+    localStorage.removeItem('lock_hash');
+    localStorage.removeItem('lock_backup');
+    localStorage.removeItem('lock_ts');
+    hideRecovery();
+    hideLock();
+    _setupPin = ''; _confirmPin = '';
+    document.getElementById('step-pin').classList.remove('hidden');
+    document.getElementById('step-confirm').classList.add('hidden');
+    document.getElementById('step-code').classList.add('hidden');
+    updateDots('setup-dots',0); updateDots('confirm-dots',0);
+    startSetup();
+  } else {
+    flashErr('recov-err', 'Invalid backup code');
+  }
+}
+
+/* ---- INACTIVITY TIMER ---- */
+function startInactivityTimer() {
+  clearTimeout(_lockTimer);
+  _lockTimer = setTimeout(function() {
+    if (isLockSetup()) showLock();
+  }, LOCK_TIMEOUT);
+}
+function resetInactivityTimer() {
+  if (!isLockSetup()) return;
+  clearTimeout(_lockTimer);
+  _lockTimer = setTimeout(function(){ showLock(); }, LOCK_TIMEOUT);
+}
+['touchstart','mousedown','keydown','scroll'].forEach(function(ev) {
+  document.addEventListener(ev, resetInactivityTimer, {passive:true});
+});
+
+// Lock on visibility change (tab/app backgrounded)
+document.addEventListener('visibilitychange', function() {
+  if (!isLockSetup()) return;
+  if (document.hidden) {
+    localStorage.setItem('lock_ts', Date.now());
+  } else {
+    var ts = parseInt(localStorage.getItem('lock_ts')||'0');
+    if (Date.now() - ts > LOCK_TIMEOUT) showLock();
+  }
+});
+
+/* ---- DOT / ERR HELPERS ---- */
+function updateDots(id, filled, error) {
+  var dots = document.getElementById(id).querySelectorAll('.lock-dot');
+  dots.forEach(function(d,i){
+    d.classList.toggle('filled', i < filled && !error);
+    d.classList.toggle('error', !!error && i < filled);
+  });
+}
+function flashDots(id) {
+  var dots = document.getElementById(id).querySelectorAll('.lock-dot');
+  dots.forEach(function(d){ d.classList.add('error'); d.classList.remove('filled'); });
+}
+function flashErr(id, msg) {
+  var el = document.getElementById(id);
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(function(){ el.classList.remove('show'); }, 2000);
+}
+function clearErr(id) {
+  var el = document.getElementById(id);
+  if(el){ el.textContent=''; el.classList.remove('show'); }
+}
+
+/* ---- BOOT ---- */
+function bootLock() {
+  if (!isLockSetup()) {
+    startSetup();
+  } else {
+    var ts = parseInt(localStorage.getItem('lock_ts')||'0');
+    // always lock on fresh load, or after inactivity
+    showLock();
+  }
+}
+
+/* ===========================
+   V12: HOME CINEMATIC SYSTEM
+   =========================== */
+
+/* ---- VAMPIRE CLOCK ---- */
+var _clockTaps = 0, _clockTapTimer = null;
+function updateClock() {
+  var now = new Date();
+  var h = now.getHours(), m = now.getMinutes();
+  var hh = (h<10?'0':'')+h, mm = (m<10?'0':'')+m;
+  var el = document.getElementById('vclock-time');
+  if (el) el.textContent = hh+':'+mm;
+  var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var de = document.getElementById('vclock-date');
+  if (de) de.textContent = days[now.getDay()]+', '+now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();
+  // moon emoji based on hour
+  var moon = document.getElementById('vclock-moon');
+  if (moon) moon.textContent = (h >= 18 || h < 6) ? '🌙' : (h < 12 ? '🌅' : '☀️');
+  // stealth auto-dim after 22:00
+  if (h >= 22 || h < 5) document.body.classList.add('stealth-dim');
+  else document.body.classList.remove('stealth-dim');
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+function clockTap() {
+  _clockTaps++;
+  clearTimeout(_clockTapTimer);
+  _clockTapTimer = setTimeout(function(){ _clockTaps=0; }, 700);
+  if (_clockTaps >= 3) {
+    _clockTaps = 0;
+    toggleStealth();
+  }
+}
+
+/* ---- SYSTEM QUOTES ---- */
+var QUOTES = [
+  "The weak don't get to choose their fate. The strong write it.",
+  "Arise. There is no rest for those who seek to transcend.",
+  "Every task completed is a shadow added to your army.",
+  "You are not grinding. You are becoming.",
+  "The System does not reward potential. It rewards execution.",
+  "Pain is temporary. Your level is permanent.",
+  "Most people stop when it gets hard. That is exactly when you continue.",
+  "The only rank that matters is the one above you.",
+  "Consistency is the only cheat code that actually works.",
+  "Shadows don't sleep. Neither does progress.",
+  "You don't find motivation. You build discipline and it finds you.",
+  "Every day you don't level up, someone else does.",
+  "The Hunt never ends. Neither should your effort.",
+  "Germany won't wait. Start now.",
+  "You are the sum of what you do daily, not what you do occasionally."
+];
+function renderQuote() {
+  var el = document.getElementById('hq-text');
+  if (!el) return;
+  var idx = new Date().getDate() % QUOTES.length;
+  el.textContent = QUOTES[idx];
+}
+
+/* ---- HUNTER ID CARD ---- */
+function renderHunterID() {
+  var lvl = getLevel(xp);
+  var rank = getRank(lvl);
+  var streak = parseInt(document.getElementById('snum').textContent||'0');
+  var kills = parseInt(localStorage.getItem('kill_count')||'0');
+  var set = function(id,v){ var e=document.getElementById(id); if(e)e.textContent=v; };
+  set('hid-rank', rank.letter);
+  set('hid-lvl', lvl);
+  set('hid-title', levelName(lvl));
+  set('hid-str', stats.str);
+  set('hid-vit', stats.vit);
+  set('hid-int', stats.int);
+  set('hid-per', stats.per);
+  set('hid-streak', streak);
+  set('hid-kills', kills);
+  set('hid-xp', xp);
+  var fs = localStorage.getItem('face_scores');
+  if (fs) {
+    var arr = JSON.parse(fs);
+    if (arr.length) set('hid-face', arr[arr.length-1].score);
+  }
+  var fill = document.getElementById('hid-xpfill');
+  var cur = xpForLevel(lvl), next = xpForLevel(lvl+1);
+  if (fill) fill.style.width = (next>cur ? Math.round((xp-cur)/(next-cur)*100) : 100)+'%';
+}
+
+/* ---- KILL COUNT ---- */
+var _logoTaps = 0, _logoTapTimer = null;
+function addKill(n) {
+  var k = parseInt(localStorage.getItem('kill_count')||'0') + (n||1);
+  localStorage.setItem('kill_count', k);
+  dbSet('kill_count', k);
+  var el = document.getElementById('hid-kills');
+  if (el) {
+    el.textContent = k;
+    el.classList.remove('killflash');
+    void el.offsetWidth;
+    el.classList.add('killflash');
+  }
+}
+function logoTap() {
+  _logoTaps++;
+  clearTimeout(_logoTapTimer);
+  _logoTapTimer = setTimeout(function(){ _logoTaps=0; }, 800);
+  if (_logoTaps >= 3) {
+    _logoTaps = 0;
+    celebrateKills();
+  }
+}
+function celebrateKills() {
+  var k = parseInt(localStorage.getItem('kill_count')||'0');
+  sysMsg('[System] Total Tasks Eliminated: '+k+' — Keep hunting.', 'quest');
+}
+
+/* ---- STREAK FLAME INTENSITY ---- */
+function renderStreakHero() {
+  var streak = parseInt(document.getElementById('snum').textContent||'0');
+  var display = document.getElementById('streak-display');
+  if (display) display.textContent = streak;
+  var flame = document.getElementById('streak-flame');
+  if (!flame) return;
+  if (streak === 0)      { flame.textContent='🕯'; flame.style.fontSize='28px'; }
+  else if (streak < 3)   { flame.textContent='🔥'; flame.style.fontSize='28px'; }
+  else if (streak < 7)   { flame.textContent='🔥'; flame.style.fontSize='34px'; }
+  else if (streak < 14)  { flame.textContent='🔥'; flame.style.fontSize='40px'; }
+  else if (streak < 21)  { flame.textContent='🔥'; flame.style.fontSize='46px'; }
+  else if (streak < 30)  { flame.textContent='🔥'; flame.style.fontSize='52px'; }
+  else                   { flame.textContent='💀🔥'; flame.style.fontSize='48px'; }
+}
+
+/* ---- BOSS BATTLE ---- */
+var BOSSES = [
+  {name:'The Iron Sloth',   icon:'👹', hp:700,  desc:'Defeat lethargy. Complete tasks to deal damage.'},
+  {name:'The Shadow Doubt', icon:'🕷', hp:800,  desc:'Silence the inner voice. Show up every day.'},
+  {name:'Lord Stagnation',  icon:'💀', hp:1000, desc:'Growth is the only weapon. Level up to win.'},
+  {name:'The Mirror Demon', icon:'👁', hp:900,  desc:'Your reflection awaits. Complete the skin routine.'},
+  {name:'The Pale Reaper',  icon:'☠️', hp:1200, desc:'Maximum effort required. No days off this week.'}
+];
+function getBossWeek() {
+  var d = new Date(); 
+  var weekNum = Math.floor((d - new Date(d.getFullYear(),0,1)) / 604800000);
+  return BOSSES[weekNum % BOSSES.length];
+}
+function renderBoss() {
+  var boss = getBossWeek();
+  var key = 'boss_dmg_'+getWeekKey();
+  var dmg = parseInt(localStorage.getItem(key)||'0');
+  var hp = Math.max(0, boss.hp - dmg);
+  var pct = Math.round(hp/boss.hp*100);
+  var set = function(id,v){ var e=document.getElementById(id); if(e)e.textContent=v; };
+  set('boss-name', boss.name);
+  set('boss-icon', boss.icon);
+  set('boss-hpnum', hp+'/'+boss.hp);
+  set('boss-sub', hp<=0 ? '💥 BOSS DEFEATED! Claim your victory. New boss Monday.' : boss.desc);
+  var fill = document.getElementById('boss-hpfill');
+  if (fill) fill.style.width = pct+'%';
+  if (hp <= 0 && fill) fill.style.background = 'var(--gn)';
+}
+function getWeekKey() {
+  var d = new Date();
+  var jan1 = new Date(d.getFullYear(),0,1);
+  return d.getFullYear()+'_'+Math.floor((d-jan1)/604800000);
+}
+function damageBoss(dmg) {
+  var key = 'boss_dmg_'+getWeekKey();
+  var cur = parseInt(localStorage.getItem(key)||'0');
+  localStorage.setItem(key, cur+dmg);
+  renderBoss();
+  sysMsg('[System] Boss took '+dmg+' damage!', 'quest');
+}
+
+/* ---- ARISE ANIMATION ---- */
+var _ariseTimer = null, _ariseHolding = false;
+function ariseHold(down) {
+  if (down) {
+    _ariseHolding = true;
+    _ariseTimer = setTimeout(function(){
+      if (_ariseHolding) triggerArise();
+    }, 800);
+  } else {
+    _ariseHolding = false;
+    clearTimeout(_ariseTimer);
+  }
+}
+function triggerArise() {
+  var awakened = SHADOWS.filter(function(sh){
+    var lvl = getLevel(xp);
+    var streak = parseInt(document.getElementById('snum').textContent||'0');
+    return sh.cond(lvl, streak);
+  });
+  if (!awakened.length) {
+    sysMsg('[System] No shadows yet. Build your streak to awaken them.', 'default');
+    return;
+  }
+  var overlay = document.getElementById('arise-overlay');
+  var shadowsEl = document.getElementById('arise-shadows');
+  var mainText = document.getElementById('arise-main-text');
+  overlay.classList.remove('hidden');
+  shadowsEl.innerHTML = '';
+  mainText.classList.remove('show');
+  mainText.textContent = 'ARISE';
+  awakened.forEach(function(sh, i) {
+    var fig = document.createElement('div');
+    fig.className = 'arise-shadow-figure';
+    fig.innerHTML = '<div class="asf-icon">'+sh.icon+'</div><div class="asf-name">'+sh.name+'</div>';
+    shadowsEl.appendChild(fig);
+    setTimeout(function(){ fig.classList.add('risen'); }, 300 + i*200);
+  });
+  setTimeout(function(){ mainText.classList.add('show'); }, 300 + awakened.length*200 + 200);
+}
+function closeArise() {
+  document.getElementById('arise-overlay').classList.add('hidden');
+}
+
+/* ---- S-RANK EASTER EGG ---- */
+var _srankTriggered = false;
+function triggerSrank() {
+  if (_srankTriggered) return;
+  _srankTriggered = true;
+  var overlay = document.getElementById('srank-overlay');
+  overlay.classList.remove('hidden');
+  var pEl = document.getElementById('srank-particles');
+  pEl.innerHTML = '';
+  for (var i=0; i<40; i++) {
+    var p = document.createElement('div');
+    p.className = 'srank-particle';
+    p.style.left = Math.random()*100+'%';
+    p.style.bottom = Math.random()*30+'%';
+    p.style.animationDelay = (Math.random()*2)+'s';
+    p.style.animationDuration = (1.5+Math.random()*2)+'s';
+    pEl.appendChild(p);
+  }
+}
+function closeSrank() {
+  document.getElementById('srank-overlay').classList.add('hidden');
+}
+
+/* ---- RANK TAP (secret combo) ---- */
+var _rankTaps = 0, _rankTapTimer = null;
+function rankTap() {
+  _rankTaps++;
+  clearTimeout(_rankTapTimer);
+  _rankTapTimer = setTimeout(function(){ _rankTaps=0; }, 800);
+  if (_rankTaps >= 5) {
+    _rankTaps = 0;
+    triggerArise();
+  }
+}
+
+/* ---- STEALTH MODE ---- */
+var _stealth = false;
+function toggleStealth() {
+  _stealth = !_stealth;
+  document.body.classList.toggle('stealth', _stealth);
+  var ind = document.getElementById('stealth-indicator');
+  if (ind) ind.classList.toggle('hidden', !_stealth);
+  sysMsg(_stealth ? '[System] Stealth Mode activated.' : '[System] Stealth Mode deactivated.', 'default');
+}
+
+/* ---- FACE SCORE TRACKER ---- */
+function logFaceScore() {
+  var input = document.getElementById('face-input');
+  var val = parseFloat(input.value);
+  if (isNaN(val) || val < 1 || val > 10) return;
+  input.value = '';
+  var arr = JSON.parse(localStorage.getItem('face_scores')||'[]');
+  var now = new Date();
+  arr.push({ score: val, date: now.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) });
+  localStorage.setItem('face_scores', JSON.stringify(arr));
+  dbSet('face_scores', JSON.stringify(arr));
+  renderFaceLog();
+  renderHunterID();
+  sysMsg('[System] Face Score logged: '+val+'/10', 'quest');
+}
+function renderFaceLog() {
+  var wrap = document.getElementById('face-log');
+  if (!wrap) return;
+  var arr = JSON.parse(localStorage.getItem('face_scores')||'[]');
+  if (!arr.length) {
+    wrap.innerHTML = '<div style="font-size:11px;color:var(--sub);padding:8px 0">No scores logged yet. Add your first one above.</div>';
+    return;
+  }
+  var baseline = 6.4;
+  wrap.innerHTML = arr.slice().reverse().map(function(e) {
+    var pct = (e.score/10)*100;
+    var delta = (e.score - baseline);
+    var sign = delta >= 0 ? '+' : '';
+    return '<div class="face-entry">' +
+      '<div class="face-date">'+e.date+'</div>' +
+      '<div class="face-score-val">'+e.score+'</div>' +
+      '<div class="face-bar"><i style="width:'+pct+'%"></i></div>' +
+      '<div style="font-size:10px;font-weight:700;color:'+(delta>=0?'var(--gn)':'var(--rd)')+'">'+sign+delta.toFixed(1)+'</div>' +
+    '</div>';
+  }).join('');
+}
+
+/* ---- HABIT HEATMAP ---- */
+function renderHeatmap() {
+  var wrap = document.getElementById('heatmap-wrap');
+  if (!wrap) return;
+  var DAYS = 84; // 12 weeks
+  var cells = '';
+  var now = new Date();
+  for (var i=DAYS-1; i>=0; i--) {
+    var d = new Date(now);
+    d.setDate(d.getDate()-i);
+    var key = d.toDateString();
+    // count how many tasks were done that day
+    var count = 0;
+    document.querySelectorAll('.ci').forEach(function(el){
+      if (localStorage.getItem('ck_'+el.dataset.id+'_'+key)==='1') count++;
+    });
+    var lvl = count===0?'':count<=3?'lvl1':count<=7?'lvl2':count<=11?'lvl3':'lvl4';
+    cells += '<div class="hm-cell '+lvl+'" title="'+key+': '+count+' tasks"></div>';
+  }
+  wrap.innerHTML = cells;
+}
+
+/* ---- HOOK: awardXP → boss damage + kill count + srank check ---- */
+var _origAwardXP = awardXP;
+awardXP = function(delta, el) {
+  _origAwardXP(delta, el);
+  if (delta > 0) {
+    // deal boss damage (10 DMG per task)
+    damageBoss(10);
+  }
+  // check for S rank
+  var lvl = getLevel(xp);
+  if (getRank(lvl).letter === 'S' && !localStorage.getItem('srank_shown')) {
+    localStorage.setItem('srank_shown','1');
+    setTimeout(triggerSrank, 800);
+  }
+  renderHunterID();
+  renderStreakHero();
+};
+
+/* ---- HOOK: tick → kill count ---- */
+var _origTick = tick;
+// patching kill count into the existing tick via awardXP hook above
+// but also intercept directly for kill increment:
+var _tickOrig = window.tick;
+
+/* ---- INIT HOME ---- */
+function initHome() {
+  renderQuote();
+  renderHunterID();
+  renderStreakHero();
+  renderBoss();
+  renderFaceLog();
+  renderHeatmap();
+}
+
+initSync();
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  bootLock();
+});
+</script>
+</body>
+</html>
