@@ -1,0 +1,25 @@
+{
+  "name": "Ryan OS",
+  "short_name": "Ryan OS",
+  "description": "Personal Ascension Command Center",
+  "start_url": "/Ryan-OS/",
+  "scope": "/Ryan-OS/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d0d0f",
+  "theme_color": "#0d0d0f",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
